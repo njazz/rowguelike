@@ -5,7 +5,8 @@
   
 ## 📟 The Game Engine for small LCD text screens. "As not seen on TV"
   
-  
+![C++ CI](https://github.com/njazz/rowguelike/actions/workflows/cmake-multi-platform.yml/badge.svg)  
+![Arduino](https://github.com/njazz/rowguelike/actions/workflows/arduino-builds.yml/badge.svg)  
   
 **Targets:** Arduino, \*nix Terminal  
 **Version:** 0.0.1 proof-of-concept
