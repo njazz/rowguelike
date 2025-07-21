@@ -30,4 +30,4 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          rowguelike_tests
+          ./rowguelike_tests
