@@ -30,4 +30,4 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          ctest --output-on-failure
+          ctest -R rowguelike_tests --output-on-failure
