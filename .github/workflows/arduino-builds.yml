@@ -1,0 +1,29 @@
+name: Build Arduino Sketches
+
+on:
+  push:
+    branches:
+      - dev-1
+      - main
+  pull_request:
+    branches:
+      - dev-1
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Compile Arduino sketches
+        uses: arduino/compile-sketches@main
+        with:
+          # Path to the sketch directory relative to repo root
+          path: "examples/pong"
+          # Fully optional: platform to target, e.g. "arduino:avr:uno"
+          fqbn: "arduino:avr:uno"
+          # Optional: board manager URLs if you have custom boards
+          # board_manager_url: "https://raw.githubusercontent.com/arduino/BoardManagerFiles/master/package_index.json"
