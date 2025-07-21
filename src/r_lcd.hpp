@@ -1,0 +1,72 @@
+#pragma once
+
+#ifdef ARDUINO
+
+#include "rowguelike.hpp"
+
+#include <LiquidCrystal.h>
+
+struct RowguelikeLCD
+{
+    static constexpr int b_select = 641;
+    static constexpr int b_left = 411;
+    static constexpr int b_right = 0;
+    static constexpr int b_up = 100;
+    static constexpr int b_down = 257;
+
+    LiquidCrystal lcd;
+    RowguelikeLCD(uint8_t p1,uint8_t p2,uint8_t p3,uint8_t p4,uint8_t p5,uint8_t p6)
+        : lcd(p1, p2, p3, p4, p5, p6)
+    {}
+
+    void setup(uint8_t w = 16, uint8_t h = 2) { lcd.begin(w, h); }
+
+    // TODO: move
+
+    struct Momentary
+    {
+        bool last{false};
+        bool current{false};
+        void set(bool b)
+        {
+            last = current;
+            current = b;
+        }
+        bool get() const { return current && current != last; }
+    };
+
+    Momentary m_select{};
+    Momentary m_up{};
+    Momentary m_down{};
+    Momentary m_left{};
+    Momentary m_right{};
+
+    void loop(uint16_t delayTime = 150)
+    {
+        auto v = analogRead(0);
+
+        m_select.set(v == b_select);
+        m_up.set(v == b_up);
+        m_down.set(v == b_down);
+        m_left.set(v == b_left);
+        m_right.set(v == b_right);
+
+        RWE.rawInput.select = m_select.get();
+        RWE.rawInput.up = m_up.get();
+        RWE.rawInput.down = m_down.get();
+        RWE.rawInput.left = m_left.get();
+        RWE.rawInput.right = m_right.get();
+
+        // put your main code here, to run repeatedly:
+        RWE.runLoop();
+
+        lcd.setCursor(0, 0);
+        lcd.print(RWE.drawContext.buffer[0]);
+        lcd.setCursor(0, 1);
+        lcd.print(RWE.drawContext.buffer[1]);
+
+        delay(delayTime);
+    }
+};
+
+#endif

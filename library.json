@@ -1,0 +1,21 @@
+{
+  "name": "rowguelike",
+  "version": "0.0.1",
+  "keywords": ["header-only", "utility", "arduino"],
+  "description": "The Game Engine for small LCD screen. \"As not seen on TV\"",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/njazz/rowguelike"
+  },
+  "authors": [
+    {
+      "name": "Alex Nadzharov",
+      "email": ""
+    }
+  ],
+  "frameworks": ["arduino"],
+  "platforms": ["*"],
+  "export": {
+    "include": ["src", "library.properties"]
+  }
+}
