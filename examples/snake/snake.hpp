@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+using namespace rwe ;
+
 // constexpr int8_t kGridWidth = 16;
 // constexpr int8_t kGridHeight = 2;
 

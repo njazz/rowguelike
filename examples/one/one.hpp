@@ -1,5 +1,7 @@
 #include "rowguelike.hpp"
 
+using namespace rwe ;
+
 void setupOne()
 {
     auto character = A::PlayerChar("#")

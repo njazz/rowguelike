@@ -1,6 +1,6 @@
 #ifndef ARDUINO
 
-#include "custom.hpp"
+#include "birds.hpp"
 #include "r_terminal.hpp"
 
 
@@ -8,7 +8,7 @@
 
 int main()
 {
-    setupCustom();
+    setupBirds();
     terminalRunLoop();
 }
 

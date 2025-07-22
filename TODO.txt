@@ -3,11 +3,13 @@
 [~] TIMER_ONCE wrapper function
 [ ] rotation / speed
 [ ] more pre-made actorbuilders
-[ ] namespace
+[x] namespace
 [ ] score in example games
+[ ] re-use buffer for custom characters
 
 Example games:
 [x] Horizontal space invaders
 [ ] Maze Walker
 [ ] Minesweeper Micro
 [ ] Road Dodge
+[ ] Screensaver

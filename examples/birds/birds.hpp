@@ -3,6 +3,8 @@
 #include "rowguelike.hpp"
 #include <stdlib.h>
 
+using namespace rwe ;
+
 uint8_t bird[5][8] = {
     {//
      0b00000,
@@ -52,7 +54,7 @@ uint8_t bird[5][8] = {
     //
 };
 
-void setupCustom()
+void setupBirds()
 {
     // not supported:
     if (RWE.drawContext.customCharacters == 0) {

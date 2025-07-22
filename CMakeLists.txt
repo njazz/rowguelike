@@ -47,12 +47,12 @@ add_executable(r_horizontal_space
 target_link_libraries(r_horizontal_space PRIVATE rowguelike)
 
 ###
-add_executable(r_custom
-    examples/custom/custom.hpp
-    examples/custom/custom.cpp
+add_executable(r_birds
+    examples/birds/birds.hpp
+    examples/birds/birds.cpp
 )
 
-target_link_libraries(r_custom PRIVATE rowguelike)
+target_link_libraries(r_birds PRIVATE rowguelike)
 
 ###
 add_custom_target(docs)

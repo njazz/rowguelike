@@ -9,7 +9,7 @@
 ![Arduino](https://github.com/njazz/rowguelike/actions/workflows/arduino-builds.yml/badge.svg)  
   
 **Targets:** Arduino, \*nix Terminal  
-**Version:** 0.0.1 proof-of-concept
+**Version:** 0.0.2 proof-of-concept
   
 
 
@@ -54,6 +54,8 @@ Engine::get().make()
 *“Give it to an LLM. It might not help, but it’ll sound confident.”*
 
 ```c++
+using namespace rwe;
+
 // Component classes
 struct Components::Position { int8_t x,y,lookAt };
 struct Components::Speed { int8_t vx,vy,rotation };
@@ -143,6 +145,21 @@ Actor & Engine::getActorByTag(const Tag tag)
 
 // Get Actor by entity id
 Actor & Engine::getActor(EntityId id)
+
+// Custom draw commands
+// This is used byt Text system so may not be needed directly:
+void DrawContext::addText(int8_t x, int8_t y, const char *txt);
+
+// alternative to A::Background Actor
+void DrawContext::clearAll();
+
+// Drawing custom characters:
+struct CustomCharacter { uint8_t data[8] };
+void DrawContext::defineChar(uint8_t idx, const CustomCharacter c);
+void DrawContext::addChar(int8_t x, int8_t y, const uint8_t id);
+
+/// NB: must be set by 'frontend', i.e. is '8' for Arduino LiquidCrystal library
+uint8_t DrawContext::customCharacters;
 
 // Shared data
 struct SharedData

@@ -2,6 +2,8 @@
 
 #include "rowguelike.hpp"
 
+using namespace rwe ;
+
 // === Constants ===
 constexpr int8_t SCREEN_WIDTH = 16;
 constexpr int8_t SCREEN_HEIGHT = 2;

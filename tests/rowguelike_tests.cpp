@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <iostream>
 
+using namespace rwe ;
+
 #define TEST_ASSERT(expr) \
     do { \
         if (!(expr)) { \
