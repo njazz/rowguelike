@@ -1,22 +1,16 @@
 [ ] position << 2 so logical screen is 64x8
 [ ] Engine viewport : int16_t scroll
-[~] TIMER_ONCE wrapper function
 [ ] rotation / speed
 [ ] more pre-made actorbuilders
-[x] namespace
 [ ] score in example games
 [ ] re-use buffer for custom characters
-[x] timer fn remove on interval
 [ ] shared data typed seter/geter
-[x] timer with default each frame
 [ ] optional frame bounds dtop position
-[x] ON_SELECT etc functions
-[x] raw input anyButton() / anyDirection()
-[x] random position function
+[ ] NEW_PAGE_ macro
+
 
 Example games:
-[x] Horizontal space invaders
 [ ] Maze Walker
 [ ] Minesweeper Micro
 [ ] Road Dodge
-[x] Screensaver
+

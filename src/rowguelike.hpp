@@ -1051,4 +1051,24 @@ static inline Engine::ActorBuilder Background(const char symbol = ' ')
 
 } // namespace A
 
+// --------
+// Page macros
+
+typedef void (*PageFn)(Engine &);
+
+#define NEW_PAGE_(x) \
+    PageFn x{nullptr}; \
+    x = +[](Engine & page)
+
+/// Typed helper function for SWITCH_PAGE_() macro
+template<PageFn fn>
+void _SwitchPage(Engine &p)
+{
+    fn(p);
+}
+
+#define SWITCH_PAGE_(x) \
+    RWE = ::rwe::Engine(); \
+    _SwitchPage<x>(RWE);
+
 } // namespace rwe
