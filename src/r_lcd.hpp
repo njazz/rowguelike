@@ -4,6 +4,8 @@
 
 #include "rowguelike.hpp"
 
+using namespace rwe;
+
 #include <LiquidCrystal.h>
 
 struct RowguelikeLCD

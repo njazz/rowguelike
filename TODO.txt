@@ -6,6 +6,13 @@
 [x] namespace
 [ ] score in example games
 [ ] re-use buffer for custom characters
+[ ] timer fn remove on interval
+[ ] shared data typed set/get
+[ ] timer with default each frame
+[ ] optional frame bounds dtop position
+[ ] ON_SELECT etc functions
+[ ] raw input anyButton() / anyDirection()
+[ ] random position function
 
 Example games:
 [x] Horizontal space invaders

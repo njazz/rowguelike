@@ -196,9 +196,9 @@ using ColliderFn = void (*)(const EntityId& receiver, const EntityId peer);
 using InputHandlerFn = void (*)(const EntityId& receiver, const RawInput& input);
 using TimerFn = void (*)(const EntityId& receiver);
 
-#define COLLIDER_FN +[](const EntityId& receiver, const EntityId peer)
-#define INPUTHANDLER_FN +[](const EntityId& receiver, const RawInput& rawInput)
-#define TIMER_FN +[](const EntityId& receiver)
+#define COLLIDER_FN +[](const ::rwe::EntityId &receiver, const ::rwe::EntityId peer)
+#define INPUTHANDLER_FN +[](const ::rwe::EntityId &receiver, const ::rwe::RawInput &rawInput)
+#define TIMER_FN +[](const ::rwe::EntityId &receiver)
 
 struct Components {
     struct Position {
@@ -781,12 +781,12 @@ public:
 // static Engine &a16{Engine::get()};
 
 /// macro for Engine singleton
-#define RWE Engine::get()
+#define RWE ::rwe::Engine::get()
 
 // --------------------------------------------------------------------------------
 // Collision functions:
 
-#define COLLIDER_FN +[](const EntityId& receiver, const EntityId peer)
+#define COLLIDER_FN +[](const ::rwe::EntityId &receiver, const ::rwe::EntityId peer)
 
 static inline bool TestHit(const EntityId& receiver, const EntityId peer)
 {
@@ -859,7 +859,7 @@ void TimerOnce()
     };
 }
 
-#define TIMER_ONCE(x) TimerOnce<x>()
+#define TIMER_ONCE(x) ::rwe::TimerOnce<x>()
 
 // --------------------------------------------------------------------------------
 // Pre-made actors

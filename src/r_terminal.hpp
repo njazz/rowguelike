@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef ARDUINO
+
 #include <iostream>
 #include <termios.h>
 #include <unistd.h>
@@ -70,3 +72,5 @@ void terminalRunLoop(const size_t timeout = 100)
         RWE.runLoop();
     }
 }
+
+#endif
