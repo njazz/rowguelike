@@ -115,15 +115,6 @@ ActorBuilder& ActorBuilder::collider(int8_t value, ColliderFn fn)
 ActorFlags Actor::Input;	
 ActorBuilder& ActorBuilder::input(InputFn fn)
 
-// Input handler helper functions
-// INPUT_ON_*_ runs a provided void(void) function:
-// Or can be used directly via On*< +[](){} > template
-#define INPUT_ON_SELECT_(x) ::rwe::OnSelect<x>
-#define INPUT_ON_UP_(x) ::rwe::OnUp<x>
-#define INPUT_ON_DOWN_(x) ::rwe::OnDown<x>
-#define INPUT_ON_LEFT_(x) ::rwe::OnLeft<x>
-#define INPUT_ON_RIGHT_(x) ::rwe::OnRight<x>
-
 // Runs timer each N frames
 ActorFlags Actor::Timer; 	
 ActorBuilder& ActorBuilder::timer(uint8_t count, TimerFn fn)
@@ -201,6 +192,16 @@ struct SharedData
     void setElement(int index, const Element &in);
 };
 SharedData Engine::sharedData;
+
+// Pages handling
+// PageManager singleton
+// Max page count is set by Setup::PageCount / macros
+void PageManager::setPage(uint8_t idx, PageFn fn)
+void PageManager::switchPage(uint8_t idx) 
+
+// helper macros
+SET_PAGE(index, /* function body */)
+SWITCH_PAGE(index)
 
 // Other macros
 #define RWE Engine::get() // Engine singleton

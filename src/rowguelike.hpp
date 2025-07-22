@@ -45,6 +45,10 @@ namespace rwe {
 #define RW_MOVE_OUTSIDE_SCREEN false
 #endif
 
+#ifndef RW_PAGE_COUNT
+#define RW_PAGE_COUNT 16
+#endif
+
 // ------------------------------------------------------------------------------
 
 struct Setup {
@@ -66,6 +70,8 @@ struct Setup {
     static constexpr uint8_t MaxViewportScale{RW_SETUP_MAX_VIEWPORT_SCALE};
 
     static constexpr bool MoveOutsideScreen{RW_MOVE_OUTSIDE_SCREEN};
+
+    static constexpr uint8_t PageCount{RW_PAGE_COUNT};
 };
 
 // ------------------------------------------------------------------------------
@@ -938,52 +944,56 @@ static inline void NonInvertingControl(const EntityId &receiver, const RawContro
 }
 
 // Basic single button handlers
+// Yet removed as that gives a cluttered syntax
 
-/// Basic handler: on SELECT
-template<VoidFn fn>
-static inline void OnSelect(const EntityId &receiver, const RawControlState &input)
-{
-    if (input.select)
-        fn();
-}
+// /// Basic handler: on SELECT
+// template<void (*fn)()>
+// static inline void OnSelect()
+// {
+//     return +[](const EntityId &receiver, const RawControlState &input) {
+//         if (input.select)
+//             fn();
+//     };
+// }
 
-/// Basic handler: on UP
-template<VoidFn fn>
-static inline void OnUp(const EntityId &receiver, const RawControlState &input)
-{
-    if (input.up)
-        fn();
-}
+// /// Basic handler: on UP
+// template<VoidFn fn>
+// static inline void OnUp(const EntityId &receiver, const RawControlState &input)
+// {
+//     if (input.up)
+//         fn();
+// }
 
-/// Basic handler: on DOWN
-template<VoidFn fn>
-static inline void OnDown(const EntityId &receiver, const RawControlState &input)
-{
-    if (input.down)
-        fn();
-}
+// /// Basic handler: on DOWN
+// template<VoidFn fn>
+// static inline void OnDown(const EntityId &receiver, const RawControlState &input)
+// {
+//     if (input.down)
+//         fn();
+// }
 
-/// Basic handler: on LEFT
-template<VoidFn fn>
-static inline void OnLeft(const EntityId &receiver, const RawControlState &input)
-{
-    if (input.left)
-        fn();
-}
+// /// Basic handler: on LEFT
+// template<VoidFn fn>
+// static inline void OnLeft(const EntityId &receiver, const RawControlState &input)
+// {
+//     if (input.left)
+//         fn();
+// }
 
-/// Basic handler: on RIGHT
-template<VoidFn fn>
-static inline void OnRight(const EntityId &receiver, const RawControlState &input)
-{
-    if (input.right)
-        fn();
-}
+// /// Basic handler: on RIGHT
+// template<VoidFn fn>
+// static inline void OnRight(const EntityId &receiver, const RawControlState &input)
+// {
+//     if (input.right)
+//         fn();
+// }
 
-#define INPUT_ON_SELECT_(x) ::rwe::OnSelect<x>
-#define INPUT_ON_UP_(x) ::rwe::OnUp<x>
-#define INPUT_ON_DOWN_(x) ::rwe::OnDown<x>
-#define INPUT_ON_LEFT_(x) ::rwe::OnLeft<x>
-#define INPUT_ON_RIGHT_(x) ::rwe::OnRight<x>
+// #define INPUT_ON_SELECT_(x) ::rwe::OnSelect<x>()
+
+// #define INPUT_ON_UP_(x) ::rwe::OnUp<x>
+// #define INPUT_ON_DOWN_(x) ::rwe::OnDown<x>
+// #define INPUT_ON_LEFT_(x) ::rwe::OnLeft<x>
+// #define INPUT_ON_RIGHT_(x) ::rwe::OnRight<x>
 
 // --------------------------------------------------------------------------------
 // Timer functions
@@ -1056,19 +1066,57 @@ static inline Engine::ActorBuilder Background(const char symbol = ' ')
 
 typedef void (*PageFn)(Engine &);
 
-#define NEW_PAGE_(x) \
-    PageFn x{nullptr}; \
-    x = +[](Engine & page)
+#define PAGE_FN +[](Engine & page)
 
-/// Typed helper function for SWITCH_PAGE_() macro
-template<PageFn fn>
-void _SwitchPage(Engine &p)
+class PageManager
 {
-    fn(p);
-}
+    PageFn _pages[Setup::PageCount];
 
-#define SWITCH_PAGE_(x) \
-    RWE = ::rwe::Engine(); \
-    _SwitchPage<x>(RWE);
+    PageManager()
+    {
+        for (auto i = 0; i < Setup::PageCount; i++) {
+            _pages[i] = PAGE_FN{};
+        }
+    }
+
+public:
+    void setPage(uint8_t idx, PageFn fn)
+    {
+        if (idx >= Setup::PageCount)
+            return;
+
+        _pages[idx] = fn;
+    }
+
+    void switchPage(uint8_t idx)
+    {
+        if (idx >= Setup::PageCount)
+            return;
+
+        RWE = ::rwe::Engine();
+        _pages[idx](RWE);
+    }
+
+    static PageManager &get()
+    {
+        static PageManager obj;
+        return obj;
+    }
+};
+
+#define SET_PAGE_(idx, ...) PageManager::get().setPage(idx, +[](Engine & page) __VA_ARGS__)
+
+// #define NEW_PAGE(x) \
+//     PageFn x{nullptr}; \
+//     x = +[](Engine & page)
+
+// /// Typed helper function for SWITCH_PAGE_() macro
+// template<PageFn fn>
+// void _SwitchPage(Engine &p)
+// {
+//     fn(p);
+// }
+
+#define SWITCH_PAGE_(x) PageManager::get().switchPage(x)
 
 } // namespace rwe
