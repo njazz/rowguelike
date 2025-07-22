@@ -70,6 +70,14 @@ add_executable(r_screensaver
 target_link_libraries(r_screensaver PRIVATE rowguelike)
 
 ###
+add_executable(r_pages
+    examples/pages/pages.hpp
+    examples/pages/pages.cpp
+)
+
+target_link_libraries(r_pages PRIVATE rowguelike)
+
+###
 add_custom_target(docs)
 target_sources(docs PRIVATE
     README.md
