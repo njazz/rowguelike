@@ -2,45 +2,43 @@
 
 void setupOne()
 {
-    auto character = A::PlayerChar("#").position(7, 0).inputHandler(INPUTHANDLER_FN {
-        if (rawInput.select) {
-            auto &p = RWE.getPosition(receiver);
+    auto character = A::PlayerChar("#")
+                         //
+                         .position(7, 0)
+                         .hitpoints(9)
+                         .inputHandler(INPUTHANDLER_FN {
+                             if (rawInput.select) {
+                                 auto &p = RWE.getPosition(receiver);
 
-            RWE //
-                .make(Actor ::Move)
-                .text("-")
-                .position(p.x, p.y)
-                .speed(1, 0)
-                .hitpoints(1)
-                .timer(
-                    2,
-                    TIMER_FN {
-                        auto p = RWE.getPosition(receiver);
-                        if (p.x >= 15) {
-                            RWE.remove(receiver);
-                        }
-                    })
-                .collider(
-                    1,
-                    COLLIDER_FN {
-                        HitPeer(receiver, peer);
+                                 RWE //
+                                     .make(Actor ::Move)
+                                     .text("-")
+                                     .position(p.x, p.y)
+                                     .speed(1, 0)
+                                     .hitpoints(1)
+                                     .timer(
+                                         2,
+                                         TIMER_FN {
+                                             auto p = RWE.getPosition(receiver);
+                                             if (p.x >= 15) {
+                                                 RWE.remove(receiver);
+                                             }
+                                         })
+                                     .collider(
+                                         1,
+                                         COLLIDER_FN {
+                                             HitPeer(receiver, peer);
 
-                        if (TEST_HIT) {
-                            if (RWE.getPosition(peer).x <= 15)
-                                RWE.getPosition(peer).x -= 1;
-                        }
-                    })
-                .spawn();
+                                             if (TEST_HIT) {
+                                                 if (RWE.getPosition(peer).x <= 15)
+                                                     RWE.getPosition(peer).x -= 1;
+                                             }
+                                         })
+                                     .spawn();
 
-            // if (p.x >= 1)
-            //     p.x -= 1;
-
-            // .spawn()
-            //
-            ;
-            ;
-        }
-    })
+                                 ;
+                             }
+                         })
 
         //
 
@@ -53,7 +51,7 @@ void setupOne()
                       .collider(1, HitPeer)
                       .hitpoints(9)
                       .timer(
-                          2, TIMER_FN {
+                          8, TIMER_FN {
                               auto &t = RWE.getText(receiver);
                               auto &hp = RWE.getHitpoints(receiver);
                               if (hp.hp == 9)
@@ -74,6 +72,33 @@ void setupOne()
                                   t.line[0] = "2";
                               if (hp.hp == 1)
                                   t.line[0] = "1";
+
+                              auto &p = RWE.getPosition(receiver);
+                              RWE //
+                                  .make(Actor ::Move)
+                                  .text("<-")
+                                  .position(p.x, p.y)
+                                  .speed(-1, 0)
+                                  .hitpoints(1)
+                                  .timer(
+                                      2,
+                                      TIMER_FN {
+                                          auto p = RWE.getPosition(receiver);
+                                          if (p.x <= 1) {
+                                              RWE.remove(receiver);
+                                          }
+                                      })
+                                  .collider(
+                                      1,
+                                      COLLIDER_FN {
+                                          HitPeer(receiver, peer);
+
+                                          if (TEST_HIT) {
+                                              if (RWE.getPosition(peer).x <= 15)
+                                                  RWE.getPosition(peer).x -= 1;
+                                          }
+                                      })
+                                  .spawn();
                           });
 
     A::Background().spawn();

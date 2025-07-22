@@ -19,7 +19,29 @@ struct RowguelikeLCD
         : lcd(p1, p2, p3, p4, p5, p6)
     {}
 
-    void setup(uint8_t w = 16, uint8_t h = 2) { lcd.begin(w, h); }
+    void setup(uint8_t w = 16, uint8_t h = 2)
+    {
+        lcd.begin(w, h);
+
+        //
+        RWE.drawContext.ctx = &lcd;
+        RWE.drawContext.customCharacters = 8;
+        RWE.drawContext.peerDefineChar = +[](void *ctx, uint8_t idx, const CustomCharacter c) {
+            if (!ctx)
+                return;
+
+            auto lcd_ = (LiquidCrystal *) ctx;
+            lcd_->createChar(idx, c.data);
+        };
+        RWE.drawContext.peerAddChar = +[](void *ctx, int8_t x, int8_t y, const uint8_t id) {
+            if (!ctx)
+                return;
+
+            auto lcd_ = (LiquidCrystal *) ctx;
+            lcd_->setCursor(x, y);
+            lcd_->write(id);
+        };
+    }
 
     // TODO: move
 
@@ -60,10 +82,12 @@ struct RowguelikeLCD
         // put your main code here, to run repeatedly:
         RWE.runLoop();
 
-        lcd.setCursor(0, 0);
-        lcd.print(RWE.drawContext.buffer[0]);
-        lcd.setCursor(0, 1);
-        lcd.print(RWE.drawContext.buffer[1]);
+        if (!RWE.drawContext.disableDirectBufferDraw) {
+            lcd.setCursor(0, 0);
+            lcd.print(RWE.drawContext.buffer[0]);
+            lcd.setCursor(0, 1);
+            lcd.print(RWE.drawContext.buffer[1]);
+        }
 
         delay(delayTime);
     }

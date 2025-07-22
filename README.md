@@ -55,23 +55,12 @@ Engine::get().make()
 
 ```c++
 // Component classes
-Components::Position : int8_t x,y,lookAt;
-Components::Speed : int8_t vx,vy,rotation;
-Components::Collider : int8_t value; ColliderFn colliderFn;
-Components::InputHandler : InputHandlerFn inputHandlerFn;
-Components::Text : const char *line[2];
-Components::Timer : uint8_t currentFrame, frameCount; TimerFn fn;
-
-// Input class
-struct RawInput
-{
-    bool left{};
-    bool right{};
-    bool up{};
-    bool down{};
-
-    bool select{};
-};
+struct Components::Position { int8_t x,y,lookAt };
+struct Components::Speed { int8_t vx,vy,rotation };
+struct Components::Collider { int8_t value; ColliderFn colliderFn };
+struct Components::InputHandler { InputHandlerFn inputHandlerFn };
+struct Components::Text { const char *line[2] };
+struct Components::Timer { uint8_t currentFrame, frameCount; TimerFn fn };
 
 // Engine getters:
 Components::Position & Engine::getPosition(EntityId id) { return components.position[id]; }
@@ -83,37 +72,44 @@ Components::Text & Engine::getText(EntityId id) { return components.text[id]; }
 Components::InputHandler & Engine::getInputHandler(EntityId id) { return components.inputHandler[id]; }
 Components::Timer & Engine::getTimer(EntityId id) { return components.timer[id]; }
 
+// Input class
+struct RawInput { bool left, right, up, down, select; };
+
 // Actor::* is an ActorFlag
+
 // make() accepts optional ActorFlags (bitmask) and returns ActionBuilder
 // the final method for ActionBuilder is spawn()
 Engine::get().make(); 
 
+// Use remove() to de-spawn actor:
+Engine::remove(EntityId);
+
 // Render text at position
-Actor::Text;		
+ActorFlags Actor::Text;		
 ActorBuilder ActorBuilder::text(const char* t);
 
 // Use speed at each frame to change position
-Actor::Move;		
+ActorFlags Actor::Move;		
 ActorBuilder ActorBuilder::position(int8_t x, int8_t y)
 ActorBuilder ActorBuilder::speed(int8_t vx, int8_t vy)
 
 // The actor is directly moved by input values
-Actor::Control;	
+ActorFlags Actor::Control;	
 
 // Checks hitpoints value and removes actor if HP==0
-Actor::Health;	
+ActorFlags Actor::Health;	
 ActorBuilder ActorBuilder::hitpoints(int8_t hp)
 
 // Performs collision check / action function with this actor
-Actor::Collider; 
+ActorFlags Actor::Collider; 
 ActorBuilder ActorBuilder::collider(int8_t value, ColliderFn fn)
 
 // Runs input handler function
-Actor::Input;	
+ActorFlags Actor::Input;	
 ActorBuilder ActorBuilder::inputHandler(InputHandlerFn fn)
 
 // Runs timer each N frames
-Actor::Timer; 	
+ActorFlags Actor::Timer; 	
 ActorBuilder ActorBuilder::timer(uint8_t count, TimerFn fn)
 
 // Spawn from ActorBuilder:
@@ -127,15 +123,17 @@ using TimerFn = void (*)(const EntityId &receiver);
 
 // Macros to define lambdas like MACRO_NAME_FN { ... }
 #define COLLIDER_FN +[](const EntityId &receiver, const EntityId peer)
-#define TEST_HIT TestHit(receiver, peer)
 #define INPUTHANDLER_FN +[](const EntityId &receiver, const RawInput &rawInput)
 #define TIMER_FN +[](const EntityId &receiver)
 
+// Use 'if (TEST_HIT) {}' inside COLLIDER_FN
+#define TEST_HIT TestHit(receiver, peer)
+
 // NB: The frame is NOT cleared by the engine so you would probably need an Actor for the background
 
-// Pre-built ActorsBuilders:
-Engine::ActorBuilder Background()                       // Fills screen with spaces
-Engine::ActorBuilder PlayerChar(const char *c = "#")    // Movable player displayed as char
+// Pre-built ActorsBuilders in 'A' namespace:
+Engine::ActorBuilder A::Background()                       // Fills screen with spaces
+Engine::ActorBuilder A::PlayerChar(const char *c = "#")    // Movable player displayed as char
 
 // Accessing Actors
 // NB: store a custom reference on Actor construction like ... .make().tag(10) to reuse it later

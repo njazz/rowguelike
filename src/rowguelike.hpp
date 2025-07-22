@@ -214,11 +214,47 @@ struct Components {
 
 // --------------------------------------------------------------------------------
 
+struct CustomCharacter
+{
+    uint8_t data[8]{0, 64, 0, 64, 0, 64, 0, 64};
+
+    CustomCharacter(uint8_t *src)
+    {
+        for (int i = 0; i < 8; i++) {
+            data[i] = src[i];
+        }
+    }
+};
+
 struct DrawContext
 {
     void *ctx{nullptr};
+
     void (*peerClearAll)(void *ctx){nullptr};
-    void (*perrAddText)(void *ctx, int8_t x, int8_t y, const char *txt){nullptr};
+    void (*peerAddText)(void *ctx, int8_t x, int8_t y, const char *txt){nullptr};
+
+    void (*peerDefineChar)(void *ctx, uint8_t idx, const CustomCharacter c){nullptr};
+    void (*peerAddChar)(void *ctx, int8_t x, int8_t y, const uint8_t id){nullptr};
+
+    /// NB: must be set by 'frontend', is '8' for LiquidCrystal library
+    uint8_t customCharacters{0};
+
+    /// NB: extra flag
+    bool disableDirectBufferDraw{false};
+
+    void defineChar(uint8_t idx, const CustomCharacter c)
+    {
+        if (!ctx)
+            return;
+        peerDefineChar(ctx, idx, c);
+    }
+
+    void addChar(int8_t x, int8_t y, const uint8_t id)
+    {
+        if (!ctx)
+            return;
+        peerAddChar(ctx, x, y, id);
+    }
 
     DrawContext()
     {
@@ -256,15 +292,17 @@ struct DrawContext
         }
     }
 
-    // for the engine:
+    /// NB: buffer is directly accessible for simple 'frontend'
     char buffer[Setup::ScreenHeight][Setup::ScreenWidth + 2];
-    uint16_t updateFlags[Setup::ScreenHeight]{};
+
+    uint16_t updateFlags[Setup::ScreenWidth / 16][Setup::ScreenHeight]{};
 
     void _begin()
     {
         // reset update flags
-        updateFlags[0] = 0;
-        updateFlags[1] = 0;
+        for (int x = 0; x < (Setup::ScreenWidth / 16); x++)
+            for (int y = 0; y < (Setup::ScreenHeight); y++)
+                updateFlags[x][y] = 0;
     }
     void _end()
     {
@@ -350,6 +388,11 @@ public:
             auto &p = _position;
             p.x = x;
             p.y = y;
+            return *this;
+        }
+        ActorBuilder control()
+        {
+            _flags |= Actor::Control;
             return *this;
         }
         ActorBuilder speed(int8_t vx, int8_t vy, bool noFlag = false)
@@ -772,6 +815,18 @@ static inline void NonInvertingControl(const EntityId &receiver, const RawInput 
 
 // --------------------------------------------------------------------------------
 // Timer functions
+
+template<TimerFn fn>
+void TimerOnce()
+{
+    return TIMER_FN
+    {
+        fn(receiver);
+        Engine::get().remove(receiver);
+    };
+}
+
+#define TIMER_ONCE(x) TimerOnce<x>()
 
 // --------------------------------------------------------------------------------
 // Pre-made actors

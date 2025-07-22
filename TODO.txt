@@ -1,13 +1,13 @@
 [ ] position << 2 so logical screen is 64x8
 [ ] Engine viewport : int16_t scroll
-[ ] TIMER_ONCE wrapper function
+[~] TIMER_ONCE wrapper function
 [ ] rotation / speed
 [ ] more pre-made actorbuilders
 [ ] namespace
 [ ] score in example games
 
 Example games:
-[ ] Horizontal space invaders
+[x] Horizontal space invaders
 [ ] Maze Walker
 [ ] Minesweeper Micro
 [ ] Road Dodge
