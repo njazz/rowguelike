@@ -255,7 +255,13 @@ struct Components {
         InputFn inputFn{nullptr};
     };
     struct Text {
-        const char* line[2];
+        const char *line[Setup::ScreenHeight];
+
+        Text()
+        {
+            for (int i = 0; i < Setup::ScreenHeight; i++)
+                line[i] = nullptr;
+        }
     };
     struct Timer {
         uint8_t currentFrame {};
@@ -447,7 +453,7 @@ public:
 
     public:
         /// Random position on screen w/o range
-        ActorBuilder randomPosition()
+        ActorBuilder &randomPosition()
         {
             auto &p = _position;
             p.x = rand() % Setup::ScreenWidth;
@@ -455,19 +461,19 @@ public:
             return *this;
         }
 
-        ActorBuilder position(int8_t x, int8_t y)
+        ActorBuilder &position(int8_t x, int8_t y)
         {
             auto& p = _position;
             p.x = x;
             p.y = y;
             return *this;
         }
-        ActorBuilder control()
+        ActorBuilder &control()
         {
             _flags |= Actor::Control;
             return *this;
         }
-        ActorBuilder speed(int8_t vx, int8_t vy, bool noFlag = false)
+        ActorBuilder &speed(int8_t vx, int8_t vy, bool noFlag = false)
         {
             if (!noFlag)
                 _flags |= Actor::Move;
@@ -477,7 +483,7 @@ public:
             p.vy = vy;
             return *this;
         }
-        ActorBuilder hitpoints(int8_t hp)
+        ActorBuilder &hitpoints(int8_t hp)
         {
             _flags |= Actor::Health;
 
@@ -486,7 +492,7 @@ public:
             return *this;
         }
 
-        ActorBuilder collider(int8_t value, ColliderFn fn)
+        ActorBuilder &collider(int8_t value, ColliderFn fn)
         {
             _flags |= Actor::Collider;
 
@@ -495,7 +501,7 @@ public:
             p.colliderFn = fn;
             return *this;
         }
-        ActorBuilder text(const char* l0, const char* l1 = nullptr)
+        ActorBuilder &text(const char *l0, const char *l1 = nullptr)
         {
             _flags |= Actor::Text;
 
@@ -504,7 +510,20 @@ public:
             p.line[1] = l1;
             return *this;
         }
-        ActorBuilder input(InputFn fn)
+        ActorBuilder &textLine(const uint8_t line, const char *l0)
+        {
+            if (line >= Setup::ScreenHeight)
+                return *this;
+
+            _flags |= Actor::Text;
+
+            auto &p = _text;
+
+            p.line[line] = l0;
+
+            return *this;
+        }
+        ActorBuilder &input(InputFn fn)
         {
             _flags |= Actor::Input;
 
@@ -512,7 +531,7 @@ public:
             p.inputFn = fn;
             return *this;
         }
-        ActorBuilder timer(uint8_t count, TimerFn fn)
+        ActorBuilder &timer(uint8_t count, TimerFn fn)
         {
             _flags |= Actor::Timer;
 
@@ -524,7 +543,7 @@ public:
         }
 
         /// Timer that runs each frame
-        ActorBuilder eachFrame(TimerFn fn)
+        ActorBuilder &eachFrame(TimerFn fn)
         {
             _flags |= Actor::Timer;
 
@@ -535,11 +554,13 @@ public:
             return *this;
         }
 
-        ActorBuilder tag(Tag tag)
+        ActorBuilder &tag(Tag tag)
         {
             _tag = tag;
             return *this;
         }
+
+        //
 
         Optional<EntityId> spawn() const { return _obj._spawn(*this); }
 
@@ -810,10 +831,10 @@ public:
                     auto& pos = getPosition(i);
                     auto& p = getText(i);
 
-                    if (p.line[0])
-                        drawContext.addText(pos.x, pos.y, p.line[0]);
-                    if (p.line[1])
-                        drawContext.addText(pos.x, pos.y + 1, p.line[1]);
+                    for (int y = 0; y < Setup::ScreenHeight; y++) {
+                        if (p.line[y])
+                            drawContext.addText(pos.x, pos.y + y, p.line[y]);
+                    }
                 }
             }
         }
@@ -1005,15 +1026,19 @@ void TimerRemoveThis(const ::rwe::EntityId &receiver)
 namespace A {
 
 /// clear background ScreenWidth x ScreenHeight
-static inline Engine::ActorBuilder Background()
+static inline Engine::ActorBuilder Background(const char symbol = ' ')
 {
     static char textLine[Setup::ScreenWidth];
     for (int i = 0; i < Setup::ScreenWidth; i++)
-        textLine[i] = ' ';
+        textLine[i] = symbol;
 
-    return Engine::get() //
-        .make()
-        .text(textLine, textLine);
+    auto r = Engine::get() //
+                 .make();
+
+    for (int i = 0; i < Setup::ScreenHeight; i++)
+        r.textLine(i, textLine);
+
+    return r;
 }
 
     /// Movable player character

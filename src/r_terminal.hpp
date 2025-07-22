@@ -43,16 +43,21 @@ void terminalRunLoop(const size_t timeout = 100)
                   << RWE.rawInput.down << RWE.rawInput.select << "\n";
 
         std::cout << "##";
-        for (int i = 0; i < Setup::ScreenWidth; i++)
+        for (int i = 0; i < rwe::Setup::ScreenWidth; i++)
             std::cout << "#";
         std::cout << "##\n";
 
-        for (int i = 0; i < Setup::ScreenHeight; i++) {
-            std::cout << "# " << RWE.drawContext.buffer[i] << " #\n";
+        for (int i = 0; i < rwe::Setup::ScreenHeight; i++) {
+            std::cout << "# ";
+            for (int x = 0; x < rwe::Setup::ScreenWidth; x++) {
+                auto c = RWE.drawContext.buffer[i][x];
+                std::cout << ((c >= 32) ? c : ' ');
+            }
+            std::cout << " #\n";
         }
 
         std::cout << "##";
-        for (int i = 0; i < Setup::ScreenWidth; i++)
+        for (int i = 0; i < rwe::Setup::ScreenWidth; i++)
             std::cout << "#";
         std::cout << "##\n";
 

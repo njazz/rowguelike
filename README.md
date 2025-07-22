@@ -91,27 +91,29 @@ Engine::remove(EntityId);
 
 // Render text at position
 ActorFlags Actor::Text;		
-ActorBuilder ActorBuilder::text(const char* t);
+ActorBuilder& ActorBuilder::text(const char* t);
+// Add line
+ActorBuilder& ActorBuilder::textLine(const uint8_t line, const char *l0)
 
 // Use speed at each frame to change position
 ActorFlags Actor::Move;		
-ActorBuilder ActorBuilder::position(int8_t x, int8_t y)
-ActorBuilder ActorBuilder::speed(int8_t vx, int8_t vy)
+ActorBuilder& ActorBuilder::position(int8_t x, int8_t y)
+ActorBuilder& ActorBuilder::speed(int8_t vx, int8_t vy)
 
 // The actor is directly moved by input values
 ActorFlags Actor::Control;	
 
 // Checks hitpoints value and removes actor if HP==0
 ActorFlags Actor::Health;	
-ActorBuilder ActorBuilder::hitpoints(int8_t hp)
+ActorBuilder& ActorBuilder::hitpoints(int8_t hp)
 
 // Performs collision check / action function with this actor
 ActorFlags Actor::Collider; 
-ActorBuilder ActorBuilder::collider(int8_t value, ColliderFn fn)
+ActorBuilder& ActorBuilder::collider(int8_t value, ColliderFn fn)
 
 // Runs input handler function
 ActorFlags Actor::Input;	
-ActorBuilder ActorBuilder::input(InputFn fn)
+ActorBuilder& ActorBuilder::input(InputFn fn)
 
 // Input handler helper functions
 // INPUT_ON_*_ runs a provided void(void) function:
@@ -124,10 +126,10 @@ ActorBuilder ActorBuilder::input(InputFn fn)
 
 // Runs timer each N frames
 ActorFlags Actor::Timer; 	
-ActorBuilder ActorBuilder::timer(uint8_t count, TimerFn fn)
+ActorBuilder& ActorBuilder::timer(uint8_t count, TimerFn fn)
 
 // Runs timer (same Component) each frame
-ActorBuilder ActorBuilder::eachFrame(TimerFn fn)
+ActorBuilder& ActorBuilder::eachFrame(TimerFn fn)
 
 // Spawn from ActorBuilder:
 Optional<EntityId> ActorBuilder::spawn() const;
@@ -152,7 +154,7 @@ using TimerFn = void (*)(const EntityId &receiver);
 // NB: The frame is NOT cleared by the engine so you would probably need an Actor for the background
 
 // Pre-built ActorsBuilders in 'A' namespace:
-Engine::ActorBuilder A::Background()                       // Fills screen with spaces
+Engine::ActorBuilder A::Background(const char symbol = ' ')// Fills screen with spaces
 Engine::ActorBuilder A::PlayerChar(const char *c = "#")    // Movable player displayed as char
 
 // Accessing Actors

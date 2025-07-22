@@ -39,6 +39,13 @@ add_executable(r_snake
 target_link_libraries(r_snake PRIVATE rowguelike)
 
 ###
+add_executable(r_snake_40x25
+    examples/snake/snake.hpp
+    examples/snake/snake_40x25.cpp
+)
+target_link_libraries(r_snake_40x25 PRIVATE rowguelike)
+
+###
 add_executable(r_horizontal_space
     examples/horizontal_space/horizontal_space.hpp
     examples/horizontal_space/horizontal_space.cpp

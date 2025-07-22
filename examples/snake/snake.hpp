@@ -89,7 +89,7 @@ struct Snake
         e.ptr = this;
         RWE.sharedData.setElement(0, e);
 
-        A::Background().spawn();
+        A::Background(' ').spawn();
 
         spawnInitial();
 
