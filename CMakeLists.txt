@@ -55,6 +55,14 @@ add_executable(r_birds
 target_link_libraries(r_birds PRIVATE rowguelike)
 
 ###
+add_executable(r_screensaver
+    examples/screensaver/screensaver.hpp
+    examples/screensaver/screensaver.cpp
+)
+
+target_link_libraries(r_screensaver PRIVATE rowguelike)
+
+###
 add_custom_target(docs)
 target_sources(docs PRIVATE
     README.md
