@@ -9,6 +9,8 @@ int main()
 {
     setupPages();
     terminalRunLoop();
+
+    IF_LET(RWE.make().spawn(), { value = 0; });
 }
 
 #endif

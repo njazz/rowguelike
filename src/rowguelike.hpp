@@ -1105,18 +1105,12 @@ public:
 };
 
 #define SET_PAGE_(idx, ...) PageManager::get().setPage(idx, +[](Engine & page) __VA_ARGS__)
+#define SWITCH_PAGE(x) PageManager::get().switchPage(x)
 
-// #define NEW_PAGE(x) \
-//     PageFn x{nullptr}; \
-//     x = +[](Engine & page)
+//
 
-// /// Typed helper function for SWITCH_PAGE_() macro
-// template<PageFn fn>
-// void _SwitchPage(Engine &p)
-// {
-//     fn(p);
-// }
-
-#define SWITCH_PAGE_(x) PageManager::get().switchPage(x)
+#define IF_LET(__value, ...) \
+    if (__value.has_value()) \
+        +[](decltype(__value.value()) value) { __VA_ARGS__ };
 
 } // namespace rwe

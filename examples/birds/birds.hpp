@@ -104,9 +104,9 @@ void setupBirds()
                                  p.x += s.vy;
                                  p.y += s.vy;
 
-                                 if (p.x == 0 || p.x == 15)
+                                 if (p.x <= 0 || p.x >= 15)
                                      s.vx = -s.vx;
-                                 if (p.y == 0 || p.y == 15)
+                                 if (p.y <= 0 || p.y >= 15)
                                      s.vy = -s.vy;
                              }
                              if (v.value > 3) {

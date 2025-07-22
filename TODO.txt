@@ -5,9 +5,7 @@
 [ ] score in example games
 [ ] re-use buffer for custom characters
 [ ] shared data typed seter/geter
-[ ] optional frame bounds dtop position
-[ ] NEW_PAGE_ macro
-
+[ ] clone(EntityId) method in engine
 
 Example games:
 [ ] Maze Walker

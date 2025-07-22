@@ -30,12 +30,14 @@ The game is defined by a set of 'Actors'
 Full example:
 
 ```c++
+using namespace rwe;
+
 Engine::get().make()
 	.text("Hello world")
 	.position(0,0)
 	.tag(1)
 	.timer(10, TIMER_FN{
-			auto id = Engine::get().byTag(1);
+                        auto id = Engine::get().getActorByTag(1);
 			auto p = Engine::get().getPosition(id);
 
 			Engine.get().make()

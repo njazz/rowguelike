@@ -9,7 +9,7 @@ void setupPages()
             .text("First Page     >")
             .input(INPUT_FN {
                 if (rawInput.right)
-                    SWITCH_PAGE_(1);
+                    SWITCH_PAGE(1);
             })
             .spawn();
     });
@@ -19,10 +19,10 @@ void setupPages()
             .text("< Second Page")
             .input(INPUT_FN {
                 if (rawInput.left)
-                    SWITCH_PAGE_(0);
+                    SWITCH_PAGE(0);
             })
             .spawn();
     });
 
-    SWITCH_PAGE_(0);
+    SWITCH_PAGE(0);
 }
