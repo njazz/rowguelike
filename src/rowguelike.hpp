@@ -16,16 +16,45 @@ namespace rwe {
 #define RW_SETUP_SCREEN_HEIGHT 2
 #endif
 
+#ifndef RW_SETUP_ACTORS
+#define RW_SETUP_ACTORS 64
+#endif
+
+#ifndef RW_SETUP_TAGS
+#define RW_SETUP_TAGS 32
+#endif
+
+#ifndef RW_SETUP_SHARED_NUMBERS
+#define RW_SETUP_SHARED_NUMBERS 8
+#endif
+
+#ifndef RW_SETUP_SHARED_STRINGS
+#define RW_SETUP_SHARED_STRINGS 4
+#endif
+
+#ifndef RW_SETUP_MAX_VIEWPORT_SCALE
+#define RW_SETUP_MAX_VIEWPORT_SCALE 0
+#endif
+
+#ifndef RW_HIGH_RESOLUTION_POSITION
+#define RW_HIGH_RESOLUTION_POSITION false
+#endif
+
 // ------------------------------------------------------------------------------
 
 struct Setup {
     static constexpr uint8_t ScreenWidth { RW_SETUP_SCREEN_WIDTH };
     static constexpr uint8_t ScreenHeight { RW_SETUP_SCREEN_HEIGHT };
 
-    static constexpr uint8_t Actors { 64 };
-    static constexpr uint8_t Tags { Actors / 2 };
-    static constexpr uint8_t SharedNumbers { Actors / 8 };
-    static constexpr uint8_t SharedStrings { Actors / 16 };
+    static constexpr uint8_t Actors { RW_SETUP_ACTORS };
+    static constexpr uint8_t Tags { RW_SETUP_TAGS };
+    static constexpr uint8_t SharedNumbers { RW_SETUP_SHARED_NUMBERS };
+    static constexpr uint8_t SharedStrings { RW_SETUP_SHARED_STRINGS };
+
+    // Bit offset for higher resolution
+    // NB: for position using int8_t this is valid in range 0..3
+    // for high-resolution position mode it's 0..9
+    static constexpr uint8_t MaxViewportScale { RW_SETUP_MAX_VIEWPORT_SCALE };
 };
 
 // ------------------------------------------------------------------------------
@@ -497,6 +526,12 @@ public:
     RawInput rawInput {};
     DrawContext drawContext {};
     SharedData sharedData {};
+
+    struct ViewportScroll {
+        uint16_t scrollX {0};
+        uint16_t scrollY {0};
+    };
+    ViewportScroll viewportScroll {};
 
     Engine()
     {
