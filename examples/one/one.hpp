@@ -8,7 +8,7 @@ void setupOne()
                          //
                          .position(7, 0)
                          .hitpoints(9)
-                         .inputHandler(INPUTHANDLER_FN {
+                         .input(INPUT_FN {
                              if (rawInput.select) {
                                  auto &p = RWE.getPosition(receiver);
 

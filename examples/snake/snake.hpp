@@ -106,7 +106,7 @@ struct Snake
                         .position(Setup::ScreenWidth / 2, Setup::ScreenHeight / 2)
                         .speed(1, 0, true) // moving right
                         .collider(1, snakeCollider)
-                        .inputHandler(NonInvertingControl)
+                        .input(NonInvertingControl)
                         .hitpoints(1)
                         .spawn();
 

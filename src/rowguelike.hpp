@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 namespace rwe {
@@ -40,21 +41,31 @@ namespace rwe {
 #define RW_HIGH_RESOLUTION_POSITION false
 #endif
 
+#ifndef RW_MOVE_OUTSIDE_SCREEN
+#define RW_MOVE_OUTSIDE_SCREEN false
+#endif
+
 // ------------------------------------------------------------------------------
 
 struct Setup {
-    static constexpr uint8_t ScreenWidth { RW_SETUP_SCREEN_WIDTH };
-    static constexpr uint8_t ScreenHeight { RW_SETUP_SCREEN_HEIGHT };
+    /// Minimal screen is a 1x1, unfortunatyely the 0x0 LCD is not supported
+    static constexpr uint8_t ScreenWidth{RW_SETUP_SCREEN_WIDTH > 0 ? RW_SETUP_SCREEN_WIDTH : 1};
+    static constexpr uint8_t ScreenHeight{RW_SETUP_SCREEN_HEIGHT > 0 ? RW_SETUP_SCREEN_HEIGHT : 1};
+
+    static constexpr uint8_t LastSymbolX{ScreenWidth - 1};
+    static constexpr uint8_t LastSymbolY{ScreenHeight - 1};
 
     static constexpr uint8_t Actors { RW_SETUP_ACTORS };
     static constexpr uint8_t Tags { RW_SETUP_TAGS };
     static constexpr uint8_t SharedNumbers { RW_SETUP_SHARED_NUMBERS };
     static constexpr uint8_t SharedStrings { RW_SETUP_SHARED_STRINGS };
 
-    // Bit offset for higher resolution
-    // NB: for position using int8_t this is valid in range 0..3
-    // for high-resolution position mode it's 0..9
-    static constexpr uint8_t MaxViewportScale { RW_SETUP_MAX_VIEWPORT_SCALE };
+    /// Bit offset for higher resolution
+    /// NB: for position using int8_t this is valid in range 0..3
+    /// for high-resolution position mode it's 0..9
+    static constexpr uint8_t MaxViewportScale{RW_SETUP_MAX_VIEWPORT_SCALE};
+
+    static constexpr bool MoveOutsideScreen{RW_MOVE_OUTSIDE_SCREEN};
 };
 
 // ------------------------------------------------------------------------------
@@ -132,8 +143,9 @@ using EntityId = uint8_t;
 
 struct DrawContext;
 
-template <typename T>
-struct _RawInputT {
+template<typename T>
+struct _ControlStateT
+{
     T left {};
     T right {};
     T up {};
@@ -141,8 +153,8 @@ struct _RawInputT {
 
     T select {};
 
-    template <typename U>
-    _RawInputT& operator=(_RawInputT<U> rhs)
+    template<typename U>
+    _ControlStateT &operator=(_ControlStateT<U> rhs)
     {
         left = rhs.left;
         right = rhs.right;
@@ -153,6 +165,10 @@ struct _RawInputT {
 
         return *this;
     }
+
+    // Helper function
+    const bool anyDirection() const { return left || right || up || down; }
+    const bool anyButton() const { return anyDirection() || select; }
 };
 
 struct MomentaryValue {
@@ -170,8 +186,8 @@ struct MomentaryValue {
     operator bool() const { return get(); }
 };
 
-using RawInput = _RawInputT<bool>;
-using MomentaryInput = _RawInputT<MomentaryValue>;
+using RawControlState = _ControlStateT<bool>;
+using MomentaryControlState = _ControlStateT<MomentaryValue>;
 
 // ------------------------------------------------------------------------------
 using ActorFlags = uint8_t;
@@ -193,18 +209,34 @@ struct Actor {
 // ------------------------------------------------------------------------------
 
 using ColliderFn = void (*)(const EntityId& receiver, const EntityId peer);
-using InputHandlerFn = void (*)(const EntityId& receiver, const RawInput& input);
+using InputFn = void (*)(const EntityId &receiver, const RawControlState &input);
 using TimerFn = void (*)(const EntityId& receiver);
 
+using VoidFn = void (*)(void);
+
 #define COLLIDER_FN +[](const ::rwe::EntityId &receiver, const ::rwe::EntityId peer)
-#define INPUTHANDLER_FN +[](const ::rwe::EntityId &receiver, const ::rwe::RawInput &rawInput)
+#define INPUT_FN +[](const ::rwe::EntityId &receiver, const ::rwe::RawControlState &rawInput)
 #define TIMER_FN +[](const ::rwe::EntityId &receiver)
+
+/// macro for non-capturing void(void) lambda
+#define FN +[]()
 
 struct Components {
     struct Position {
         int8_t x {}, y {};
         int8_t lookAt {};
-        bool operator==(const Position& rhs) const { return x == rhs.x && y == rhs.y; }
+        bool operator==(const Position &rhs) const
+        {
+            return x == rhs.x && y == rhs.y && lookAt == rhs.lookAt;
+        }
+
+        void randomizeX() { x = rand() % Setup::ScreenWidth; }
+        void randomizeY() { y = rand() % Setup::ScreenHeight; }
+        void randomize()
+        {
+            randomizeX();
+            randomizeY();
+        }
     };
     struct Speed {
         int8_t vx {}, vy {};
@@ -218,8 +250,9 @@ struct Components {
         int8_t value {};
         ColliderFn colliderFn { nullptr };
     };
-    struct InputHandler {
-        InputHandlerFn inputHandlerFn { nullptr };
+    struct Input
+    {
+        InputFn inputFn{nullptr};
     };
     struct Text {
         const char* line[2];
@@ -237,7 +270,7 @@ struct Components {
 
     //
     Collider collider[Setup::Actors] {};
-    InputHandler inputHandler[Setup::Actors] {};
+    Input input[Setup::Actors]{};
     Text text[Setup::Actors] {};
     Timer timer[Setup::Actors] {};
 };
@@ -245,6 +278,7 @@ struct Components {
 // --------------------------------------------------------------------------------
 
 struct CustomCharacter {
+    /// Some test pattern now
     uint8_t data[8] { 0, 64, 0, 64, 0, 64, 0, 64 };
 
     CustomCharacter(uint8_t* src)
@@ -308,18 +342,20 @@ struct DrawContext {
         if (!txt)
             return;
 
-        if (x < 0)
-            x = 0;
-        if (x > 15)
-            x = 15;
-        if (y < 0)
-            y = 0;
-        if (y > 1)
-            y = 1;
+        if (!Setup::MoveOutsideScreen) {
+            if (x < 0)
+                x = 0;
+            if (x > Setup::LastSymbolX)
+                x = Setup::LastSymbolX;
+            if (y < 0)
+                y = 0;
+            if (y > Setup::LastSymbolY)
+                y = Setup::LastSymbolY;
+        }
 
         size_t len = strlen(txt);
-        if (len > (16 - x))
-            len = 16 - x;
+        if (len > (Setup::ScreenWidth - x))
+            len = Setup::ScreenWidth - x;
 
         for (int i = 0; i < static_cast<int>(len); i++) {
             buffer[y][x + i] = txt[i];
@@ -406,10 +442,19 @@ public:
         Components::Hitpoints _hitpoints;
         Components::Collider _collider;
         Components::Text _text;
-        Components::InputHandler _inputHandler;
+        Components::Input _input;
         Components::Timer _timer;
 
     public:
+        /// Random position on screen w/o range
+        ActorBuilder randomPosition()
+        {
+            auto &p = _position;
+            p.x = rand() % Setup::ScreenWidth;
+            p.y = rand() % Setup::ScreenHeight;
+            return *this;
+        }
+
         ActorBuilder position(int8_t x, int8_t y)
         {
             auto& p = _position;
@@ -459,12 +504,12 @@ public:
             p.line[1] = l1;
             return *this;
         }
-        ActorBuilder inputHandler(InputHandlerFn fn)
+        ActorBuilder input(InputFn fn)
         {
             _flags |= Actor::Input;
 
-            auto& p = _inputHandler;
-            p.inputHandlerFn = fn;
+            auto &p = _input;
+            p.inputFn = fn;
             return *this;
         }
         ActorBuilder timer(uint8_t count, TimerFn fn)
@@ -477,6 +522,19 @@ public:
             p.fn = fn;
             return *this;
         }
+
+        /// Timer that runs each frame
+        ActorBuilder eachFrame(TimerFn fn)
+        {
+            _flags |= Actor::Timer;
+
+            auto &p = _timer;
+            p.currentFrame = 0;
+            p.frameCount = 0;
+            p.fn = fn;
+            return *this;
+        }
+
         ActorBuilder tag(Tag tag)
         {
             _tag = tag;
@@ -513,7 +571,7 @@ protected:
         getHitpoints(entityId) = b._hitpoints;
         getCollider(entityId) = b._collider;
         getText(entityId) = b._text;
-        getInputHandler(entityId) = b._inputHandler;
+        getInput(entityId) = b._input;
         getTimer(entityId) = b._timer;
 
         if (b._tag.has_value())
@@ -523,8 +581,9 @@ protected:
     }
 
 public:
-    RawInput rawInput {};
-    DrawContext drawContext {};
+    RawControlState rawInput{};
+
+    DrawContext drawContext{};
     SharedData sharedData {};
 
     struct ViewportScroll {
@@ -548,7 +607,7 @@ public:
 
     Components::Collider& getCollider(EntityId id) { return _components.collider[id]; }
     Components::Text& getText(EntityId id) { return _components.text[id]; }
-    Components::InputHandler& getInputHandler(EntityId id) { return _components.inputHandler[id]; }
+    Components::Input &getInput(EntityId id) { return _components.input[id]; }
     Components::Timer& getTimer(EntityId id) { return _components.timer[id]; }
 
     /// Get Actor by entity id, returns dummy if fails
@@ -644,7 +703,7 @@ public:
 
                 // input handler: forward
                 if (_actors[i].flags & Actor::Input) {
-                    getInputHandler(i).inputHandlerFn(i, rawInput);
+                    getInput(i).inputFn(i, rawInput);
                 }
             }
         }
@@ -663,14 +722,17 @@ public:
                     p.x = int8_t(p.x) + _components.speed[i].vx;
                     p.y = int8_t(p.y) + _components.speed[i].vy;
 
-                    if (p.x >= 16)
-                        p.x = 15;
-                    if (p.x < 0)
-                        p.x = 0;
-                    if (p.y >= 2)
-                        p.y = 1;
-                    if (p.y < 0)
-                        p.y = 0;
+                    // NB: currently limited by the setup
+                    if (!Setup::MoveOutsideScreen) {
+                        if (p.x >= Setup::ScreenWidth)
+                            p.x = Setup::LastSymbolX;
+                        if (p.x < 0)
+                            p.x = 0;
+                        if (p.y >= Setup::ScreenHeight)
+                            p.y = Setup::LastSymbolY;
+                        if (p.y < 0)
+                            p.y = 0;
+                    }
                 }
             }
         }
@@ -783,19 +845,23 @@ public:
 /// macro for Engine singleton
 #define RWE ::rwe::Engine::get()
 
+/// shorthand for actor definition (with no flags)
+#define RW_ACTOR ::rwe::Engine::get().make()
+
 // --------------------------------------------------------------------------------
 // Collision functions:
 
 #define COLLIDER_FN +[](const ::rwe::EntityId &receiver, const ::rwe::EntityId peer)
 
-static inline bool TestHit(const EntityId& receiver, const EntityId peer)
+/// Helper function for the TEST_HIT macro
+static inline bool _TestHit(const EntityId &receiver, const EntityId peer)
 {
     auto& pR = RWE.getPosition(receiver);
     auto& pP = RWE.getPosition(peer);
     return pR == pP;
 }
 
-#define TEST_HIT TestHit(receiver, peer)
+#define TEST_HIT _TestHit(receiver, peer)
 
 static inline void HitReceiver(const EntityId& receiver, const EntityId peer)
 {
@@ -821,11 +887,15 @@ static inline void HitPeer(const EntityId& receiver, const EntityId peer)
     }
 }
 
+/// macros only for the uniform syntax
+#define COLLIDER_HIT_RECEIVER HitReceiver
+#define COLLIDER_HIT_PEER HitPeer
+
 // --------------------------------------------------------------------------------
 // Input handler functions
 
 /// Disallow speed inversion in any axis
-static inline void NonInvertingControl(const EntityId& receiver, const RawInput& input)
+static inline void NonInvertingControl(const EntityId &receiver, const RawControlState &input)
 {
     auto& engine = Engine::get();
     auto& speed = engine.getSpeed(receiver);
@@ -846,33 +916,105 @@ static inline void NonInvertingControl(const EntityId& receiver, const RawInput&
     }
 }
 
+// Basic single button handlers
+
+/// Basic handler: on SELECT
+template<VoidFn fn>
+static inline void OnSelect(const EntityId &receiver, const RawControlState &input)
+{
+    if (input.select)
+        fn();
+}
+
+/// Basic handler: on UP
+template<VoidFn fn>
+static inline void OnUp(const EntityId &receiver, const RawControlState &input)
+{
+    if (input.up)
+        fn();
+}
+
+/// Basic handler: on DOWN
+template<VoidFn fn>
+static inline void OnDown(const EntityId &receiver, const RawControlState &input)
+{
+    if (input.down)
+        fn();
+}
+
+/// Basic handler: on LEFT
+template<VoidFn fn>
+static inline void OnLeft(const EntityId &receiver, const RawControlState &input)
+{
+    if (input.left)
+        fn();
+}
+
+/// Basic handler: on RIGHT
+template<VoidFn fn>
+static inline void OnRight(const EntityId &receiver, const RawControlState &input)
+{
+    if (input.right)
+        fn();
+}
+
+#define INPUT_ON_SELECT_(x) ::rwe::OnSelect<x>
+#define INPUT_ON_UP_(x) ::rwe::OnUp<x>
+#define INPUT_ON_DOWN_(x) ::rwe::OnDown<x>
+#define INPUT_ON_LEFT_(x) ::rwe::OnLeft<x>
+#define INPUT_ON_RIGHT_(x) ::rwe::OnRight<x>
+
 // --------------------------------------------------------------------------------
 // Timer functions
 
+/// Run the provided action once and keep actor
 template <TimerFn fn>
 void TimerOnce()
 {
     return TIMER_FN
     {
         fn(receiver);
-        Engine::get().remove(receiver);
+        Engine::get().getTimer(receiver).fn = TIMER_FN{};
     };
 }
 
-#define TIMER_ONCE(x) ::rwe::TimerOnce<x>()
+/// Run the provided action and remove the Actor
+template<TimerFn fn>
+void TimerOnceAndRemoveThis()
+{
+    return TIMER_FN
+    {
+        fn(receiver);
+        RWE.remove(receiver);
+    };
+}
+
+/// remove the receiver after timer's interval
+void TimerRemoveThis(const ::rwe::EntityId &receiver)
+{
+    RWE.remove(receiver);
+}
+
+#define TIMER_ONCE_(x) ::rwe::TimerOnce<x>()
+#define TIMER_ONCE_AND_REMOVE_THIS_(x) ::rwe::TimerOnceAndRemoveThis<x>()
+#define TIMER_REMOVE_THIS ::rwe::TimerRemoveThis
 
 // --------------------------------------------------------------------------------
 // Pre-made actors
 
 namespace A {
 
-    /// clear background 16x2
-    static inline Engine::ActorBuilder Background()
-    {
-        return Engine::get() //
-            .make()
-            .text("                ", "                ");
-    }
+/// clear background ScreenWidth x ScreenHeight
+static inline Engine::ActorBuilder Background()
+{
+    static char textLine[Setup::ScreenWidth];
+    for (int i = 0; i < Setup::ScreenWidth; i++)
+        textLine[i] = ' ';
+
+    return Engine::get() //
+        .make()
+        .text(textLine, textLine);
+}
 
     /// Movable player character
     static inline Engine::ActorBuilder PlayerChar(const char* c = "#")

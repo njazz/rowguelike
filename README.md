@@ -60,7 +60,7 @@ using namespace rwe;
 struct Components::Position { int8_t x,y,lookAt };
 struct Components::Speed { int8_t vx,vy,rotation };
 struct Components::Collider { int8_t value; ColliderFn colliderFn };
-struct Components::InputHandler { InputHandlerFn inputHandlerFn };
+struct Components::Input { InputFn inputFn };
 struct Components::Text { const char *line[2] };
 struct Components::Timer { uint8_t currentFrame, frameCount; TimerFn fn };
 
@@ -71,7 +71,7 @@ Components::Hitpoints & Engine::getHitpoints(EntityId id) { return components.hi
 
 Components::Collider & Engine::getCollider(EntityId id) { return components.collider[id]; }
 Components::Text & Engine::getText(EntityId id) { return components.text[id]; }
-Components::InputHandler & Engine::getInputHandler(EntityId id) { return components.inputHandler[id]; }
+Components::Input & Engine::getInput(EntityId id) { return components.input[id]; }
 Components::Timer & Engine::getTimer(EntityId id) { return components.timer[id]; }
 
 // Input class
@@ -82,6 +82,9 @@ struct RawInput { bool left, right, up, down, select; };
 // make() accepts optional ActorFlags (bitmask) and returns ActionBuilder
 // the final method for ActionBuilder is spawn()
 Engine::get().make(); 
+
+// Or use a shorthand for an actor without flags
+#define RW_ACTOR ::rwe::Engine::get().make()
 
 // Use remove() to de-spawn actor:
 Engine::remove(EntityId);
@@ -108,11 +111,23 @@ ActorBuilder ActorBuilder::collider(int8_t value, ColliderFn fn)
 
 // Runs input handler function
 ActorFlags Actor::Input;	
-ActorBuilder ActorBuilder::inputHandler(InputHandlerFn fn)
+ActorBuilder ActorBuilder::input(InputFn fn)
+
+// Input handler helper functions
+// INPUT_ON_*_ runs a provided void(void) function:
+// Or can be used directly via On*< +[](){} > template
+#define INPUT_ON_SELECT_(x) ::rwe::OnSelect<x>
+#define INPUT_ON_UP_(x) ::rwe::OnUp<x>
+#define INPUT_ON_DOWN_(x) ::rwe::OnDown<x>
+#define INPUT_ON_LEFT_(x) ::rwe::OnLeft<x>
+#define INPUT_ON_RIGHT_(x) ::rwe::OnRight<x>
 
 // Runs timer each N frames
 ActorFlags Actor::Timer; 	
 ActorBuilder ActorBuilder::timer(uint8_t count, TimerFn fn)
+
+// Runs timer (same Component) each frame
+ActorBuilder ActorBuilder::eachFrame(TimerFn fn)
 
 // Spawn from ActorBuilder:
 Optional<EntityId> ActorBuilder::spawn() const;
@@ -120,13 +135,16 @@ void ActorBuilder::spawnToId(EntityId &id)
 
 // Function types
 using ColliderFn = void (*)(const EntityId &receiver, const EntityId peer);
-using InputHandlerFn = void (*)(const EntityId &receiver, const RawInput &input);
+using InputFn = void (*)(const EntityId &receiver, const RawInput &input);
 using TimerFn = void (*)(const EntityId &receiver);
 
 // Macros to define lambdas like MACRO_NAME_FN { ... }
 #define COLLIDER_FN +[](const EntityId &receiver, const EntityId peer)
-#define INPUTHANDLER_FN +[](const EntityId &receiver, const RawInput &rawInput)
+#define INPUT_FN +[](const EntityId &receiver, const RawInput &rawInput)
 #define TIMER_FN +[](const EntityId &receiver)
+
+/// macro for non-capturing void(void) lambda
+#define FN +[]()
 
 // Use 'if (TEST_HIT) {}' inside COLLIDER_FN
 #define TEST_HIT TestHit(receiver, peer)

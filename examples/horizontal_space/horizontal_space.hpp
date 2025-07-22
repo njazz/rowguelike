@@ -10,7 +10,7 @@ constexpr int8_t SCREEN_HEIGHT = Setup::ScreenHeight;
 
 // === Forward declarations ===
 void SpawnEnemy();
-void ShootBullet(const EntityId &receiver, const RawInput &input);
+void ShootBullet(const EntityId &receiver, const RawControlState &input);
 
 // === Setup Entry Point ===
 void setupHorizontalSpace()
@@ -22,7 +22,7 @@ void setupHorizontalSpace()
     auto player = A::PlayerChar(">")
                       .position(0, 0)
                       .control()
-                      .inputHandler(INPUTHANDLER_FN { ShootBullet(receiver, rawInput); })
+                      .input(INPUT_FN { ShootBullet(receiver, rawInput); })
                       .hitpoints(1)
                       .spawn();
 
@@ -33,7 +33,7 @@ void setupHorizontalSpace()
 }
 
 // === Input handler for player shooting ===
-void ShootBullet(const EntityId &receiver, const RawInput &input)
+void ShootBullet(const EntityId &receiver, const RawControlState &input)
 {
     if (!input.select) return;
 
