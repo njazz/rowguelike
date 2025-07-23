@@ -28,6 +28,17 @@ struct RowguelikeLCD
         //
         RWE.drawContext.ctx = &lcd;
         RWE.drawContext.customCharacters = 8;
+        RWE.drawContext.peerClearAll = +[](void *ctx) {
+            if (!ctx)
+                return;
+
+            // NB: run this only for custom character rendering
+            if (!RWE.drawContext.disableDirectBufferDraw)
+                return;
+
+            auto lcd_ = (LiquidCrystal *) ctx;
+            lcd_->clear();
+        };
         RWE.drawContext.peerDefineChar = +[](void *ctx, uint8_t idx, const CustomCharacter c) {
             if (!ctx)
                 return;

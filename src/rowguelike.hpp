@@ -314,7 +314,9 @@ struct CustomCharacter {
 struct DrawContext {
     void* ctx { nullptr };
 
-    void (*peerClearAll)(void* ctx) { nullptr };
+    void (*peerClearAll)(void *ctx){+[](void *) {
+
+    }};
     void (*peerAddText)(void* ctx, int8_t x, int8_t y, const char* txt) { nullptr };
 
     void (*peerDefineChar)(void* ctx, uint8_t idx, const CustomCharacter c) { nullptr };
@@ -352,6 +354,9 @@ struct DrawContext {
 
     void clearAll()
     {
+        if (ctx)
+            peerClearAll(ctx);
+
         for (int y = 0; y < Setup::ScreenHeight; y++) {
             for (int x = 0; x < Setup::ScreenWidth; x++) {
                 buffer[y][x] = ' ';

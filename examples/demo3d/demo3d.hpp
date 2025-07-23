@@ -53,16 +53,22 @@ void setupDemo3D()
     R3D.prepare();
 
     auto renderActor = RWE.make()
+                           .position(0, 0)
+                           .control()
+                           .speed(1, 0)
                            .text("")
                            .eachFrame(TIMER_FN {
+                               auto &p = RWE.getPosition(receiver);
                                R3D.render();
 
                                for (int i = 0; i < 8; i++)
                                    RWE.drawContext.defineChar(i, CustomCharacter{R3D.buffer[i]});
 
+                               RWE.drawContext.clearAll();
+
                                for (auto x = 0; x < 4; x++)
                                    for (auto y = 0; y < 4; y++) {
-                                       RWE.drawContext.addChar(x, y, x + y * 4);
+                                       RWE.drawContext.addChar(x + p.x, y, x + y * 4);
                                    }
                            })
                            .spawn();
