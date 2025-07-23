@@ -39,6 +39,53 @@ add_executable(r_snake
 target_link_libraries(r_snake PRIVATE rowguelike)
 
 ###
+add_executable(r_snake_40x25
+    examples/snake/snake.hpp
+    examples/snake/snake_40x25.cpp
+)
+target_link_libraries(r_snake_40x25 PRIVATE rowguelike)
+
+###
+add_executable(r_horizontal_space
+    examples/horizontal_space/horizontal_space.hpp
+    examples/horizontal_space/horizontal_space.cpp
+)
+
+target_link_libraries(r_horizontal_space PRIVATE rowguelike)
+
+###
+add_executable(r_birds
+    examples/birds/birds.hpp
+    examples/birds/birds.cpp
+)
+
+target_link_libraries(r_birds PRIVATE rowguelike)
+
+###
+add_executable(r_screensaver
+    examples/screensaver/screensaver.hpp
+    examples/screensaver/screensaver.cpp
+)
+
+target_link_libraries(r_screensaver PRIVATE rowguelike)
+
+###
+add_executable(r_pages
+    examples/pages/pages.hpp
+    examples/pages/pages.cpp
+)
+
+target_link_libraries(r_pages PRIVATE rowguelike)
+
+###
+add_executable(r_demo3d
+    examples/demo3d/demo3d.hpp
+    examples/demo3d/demo3d.cpp
+)
+
+target_link_libraries(r_demo3d PRIVATE rowguelike)
+
+###
 add_custom_target(docs)
 target_sources(docs PRIVATE
     README.md

@@ -2,6 +2,8 @@
 
 #include "rowguelike.hpp"
 
+using namespace rwe ;
+
 // === Constants ===
 constexpr int8_t SCREEN_WIDTH = 16;
 constexpr int8_t SCREEN_HEIGHT = 2;
@@ -24,7 +26,7 @@ static auto collider = COLLIDER_FN
 };
 
 // === Input Logic (W/S keys) ===
-static auto inputhandler = INPUTHANDLER_FN
+static auto inputhandler = INPUT_FN
 {
     auto &pos = Engine::get().getPosition(receiver);
     if (rawInput.up && pos.y > 0)
@@ -92,7 +94,7 @@ void setupExamplePong()
         .make(Actor::Text | Actor::Input | Actor::Control | Actor::Collider)
         .text(PADDLE_CHAR)
         .position(0, SCREEN_HEIGHT / 2)
-        .inputHandler(inputhandler)
+        .input(inputhandler)
         .collider(1, collider)
         .spawnToId(leftPaddle);
 

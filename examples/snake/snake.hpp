@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+using namespace rwe ;
+
 // constexpr int8_t kGridWidth = 16;
 // constexpr int8_t kGridHeight = 2;
 
@@ -87,7 +89,7 @@ struct Snake
         e.ptr = this;
         RWE.sharedData.setElement(0, e);
 
-        A::Background().spawn();
+        A::Background(' ').spawn();
 
         spawnInitial();
 
@@ -104,7 +106,7 @@ struct Snake
                         .position(Setup::ScreenWidth / 2, Setup::ScreenHeight / 2)
                         .speed(1, 0, true) // moving right
                         .collider(1, snakeCollider)
-                        .inputHandler(NonInvertingControl)
+                        .input(NonInvertingControl)
                         .hitpoints(1)
                         .spawn();
 

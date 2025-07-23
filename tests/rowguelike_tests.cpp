@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <iostream>
 
+using namespace rwe ;
+
 #define TEST_ASSERT(expr) \
     do { \
         if (!(expr)) { \
@@ -41,7 +43,7 @@ int main()
     TEST_ASSERT(strncmp(RWE.getText(0).line[0], "*", 1) == 0);
 
     auto b1 = RWE.make(Actor::Input);
-    b1.inputHandler(+[](const EntityId &, const RawInput &) {});
+    b1.input(+[](const EntityId &, const RawControlState &) {});
     b1.spawn();
 
     RWE.runLoop();

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef ARDUINO
+
 #include <iostream>
 #include <termios.h>
 #include <unistd.h>
@@ -14,7 +16,7 @@ char getch_with_timeout(int timeout_ms, char default_value)
 
     newt.c_lflag &= ~(ICANON | ECHO); // disable canonical mode and echo
 
-    newt.c_cc[VMIN] = 0;                 // minimum number of characters for noncanonical read
+    newt.c_cc[VMIN] = 0; // minimum number of characters for noncanonical read
     newt.c_cc[VTIME] = timeout_ms / 100; // timeout in 100ms units
 
     tcsetattr(STDIN_FILENO, TCSANOW, &newt); // apply new settings
@@ -37,16 +39,27 @@ void terminalRunLoop(const size_t timeout = 100)
     while (true) {
         std::cout << "\033[2J\033[H"; // clear screen
 
-        // std::cout << handler.line1.substr(0, 16) << "\n";
-        // std::cout << handler.line2.substr(0, 16) << "\n";
-
         std::cout << "Inputs: " << RWE.rawInput.left << RWE.rawInput.right << RWE.rawInput.up
                   << RWE.rawInput.down << RWE.rawInput.select << "\n";
 
-        std::cout << "################\n";
-        std::cout << RWE.drawContext.buffer[0] << "\n";
-        std::cout << RWE.drawContext.buffer[1] << "\n";
-        std::cout << "################\n";
+        std::cout << "##";
+        for (int i = 0; i < rwe::Setup::ScreenWidth; i++)
+            std::cout << "#";
+        std::cout << "##\n";
+
+        for (int i = 0; i < rwe::Setup::ScreenHeight; i++) {
+            std::cout << "# ";
+            for (int x = 0; x < rwe::Setup::ScreenWidth; x++) {
+                auto c = RWE.drawContext.buffer[i][x];
+                std::cout << ((c >= 32) ? c : ' ');
+            }
+            std::cout << " #\n";
+        }
+
+        std::cout << "##";
+        for (int i = 0; i < rwe::Setup::ScreenWidth; i++)
+            std::cout << "#";
+        std::cout << "##\n";
 
         char ch = getch_with_timeout(timeout, '*'); //getch();
 
@@ -64,3 +77,5 @@ void terminalRunLoop(const size_t timeout = 100)
         RWE.runLoop();
     }
 }
+
+#endif
