@@ -4,15 +4,6 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'src/**'
-      - 'examples/**'
-      - 'ci/**'
-      - '.github/workflows/**'
-      - 'CMakeLists.txt'
-      - 'library.json'
-      - 'library.properties'
-  pull_request_target:
 
 name: Arduino Library Lint
 jobs:
