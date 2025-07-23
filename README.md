@@ -9,7 +9,7 @@
 ![Arduino](https://github.com/njazz/rowguelike/actions/workflows/arduino-builds.yml/badge.svg)  
   
 **Targets:** Arduino, \*nix Terminal  
-**Version:** 0.0.2 proof-of-concept
+**Version:** 0.0.3
   
 
 
