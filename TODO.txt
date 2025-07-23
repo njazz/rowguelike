@@ -5,7 +5,6 @@
 [ ] score in example games
 [ ] re-use buffer for custom characters
 [ ] shared data typed seter/geter
-[ ] clone(EntityId) method in engine
 
 Example games:
 [ ] Maze Walker

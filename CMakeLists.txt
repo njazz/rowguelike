@@ -78,6 +78,14 @@ add_executable(r_pages
 target_link_libraries(r_pages PRIVATE rowguelike)
 
 ###
+add_executable(r_demo3d
+    examples/demo3d/demo3d.hpp
+    examples/demo3d/demo3d.cpp
+)
+
+target_link_libraries(r_demo3d PRIVATE rowguelike)
+
+###
 add_custom_target(docs)
 target_sources(docs PRIVATE
     README.md

@@ -49,6 +49,10 @@ namespace rwe {
 #define RW_PAGE_COUNT 16
 #endif
 
+#ifndef RW_WITH_3D
+#define RW_WITH_3D false
+#endif
+
 // ------------------------------------------------------------------------------
 
 struct Setup {
@@ -149,6 +153,7 @@ using EntityId = uint8_t;
 
 struct DrawContext;
 
+/// Template for the control state
 template<typename T>
 struct _ControlStateT
 {
@@ -213,6 +218,7 @@ struct Actor {
 };
 
 // ------------------------------------------------------------------------------
+// Used function types
 
 using ColliderFn = void (*)(const EntityId& receiver, const EntityId peer);
 using InputFn = void (*)(const EntityId &receiver, const RawControlState &input);
@@ -226,6 +232,9 @@ using VoidFn = void (*)(void);
 
 /// macro for non-capturing void(void) lambda
 #define FN +[]()
+
+// ------------------------------------------------------------------------------
+// Components storage
 
 struct Components {
     struct Position {
@@ -288,6 +297,7 @@ struct Components {
 };
 
 // --------------------------------------------------------------------------------
+// Display classes
 
 struct CustomCharacter {
     /// Some test pattern now
@@ -430,9 +440,20 @@ protected:
     Tag _tags[Setup::Tags];
 
     /// Dummy value storage
-    static union {
+    union DummyValues {
         Actor actor;
-    } _dummyValues;
+
+        Components::Position _position;
+        Components::Speed _speed;
+        Components::Hitpoints _hitpoints;
+        Components::Collider _collider;
+        Components::Text _text;
+        Components::Input _input;
+        Components::Timer _timer;
+
+        DummyValues() {}
+    };
+    static DummyValues _dummyValues;
 
 public:
     struct ActorBuilder {
@@ -627,22 +648,58 @@ public:
 
     // ---
     // Component getters
+    // NB: returns dummy if id>= Setup::Actors
 
-    Components::Position& getPosition(EntityId id) { return _components.position[id]; }
-    Components::Speed& getSpeed(EntityId id) { return _components.speed[id]; }
-    Components::Hitpoints& getHitpoints(EntityId id) { return _components.hitpoints[id]; }
-
-    Components::Collider& getCollider(EntityId id) { return _components.collider[id]; }
-    Components::Text& getText(EntityId id) { return _components.text[id]; }
-    Components::Input &getInput(EntityId id) { return _components.input[id]; }
-    Components::Timer& getTimer(EntityId id) { return _components.timer[id]; }
-
-    /// Get Actor by entity id, returns dummy if fails
-    Actor& getActor(EntityId id)
+    Components::Position &getPosition(EntityId id)
     {
         if (id >= Setup::Actors)
-            return _dummyValues.actor;
-        return _actors[id];
+            return _dummyValues._position;
+        return _components.position[id];
+    }
+    Components::Speed &getSpeed(EntityId id)
+    {
+        if (id >= Setup::Actors)
+            return _dummyValues._speed;
+        return _components.speed[id];
+    }
+    Components::Hitpoints &getHitpoints(EntityId id)
+    {
+        if (id >= Setup::Actors)
+            return _dummyValues._hitpoints;
+        return _components.hitpoints[id];
+    }
+
+    Components::Collider &getCollider(EntityId id)
+    {
+        if (id >= Setup::Actors)
+            return _dummyValues._collider;
+        return _components.collider[id];
+    }
+    Components::Text &getText(EntityId id)
+    {
+        if (id >= Setup::Actors)
+            return _dummyValues._text;
+        return _components.text[id];
+    }
+    Components::Input &getInput(EntityId id)
+    {
+        if (id >= Setup::Actors)
+            return _dummyValues._input;
+        return _components.input[id];
+    }
+    Components::Timer &getTimer(EntityId id)
+    {
+        if (id >= Setup::Actors)
+            return _dummyValues._timer;
+        return _components.timer[id];
+    }
+
+    /// true if actor flags != 0
+    bool isActiveActor(EntityId id)
+    {
+        if (id >= Setup::Actors)
+            return false;
+        return _actors[id].flags != 0;
     }
 
     // ---
@@ -653,15 +710,27 @@ public:
         _tags[tag] = id;
     }
 
-    Actor& getActorByTag(const Tag tag)
+    // ---
+
+    /// Get Actor by entity id, returns dummy if fails
+    Actor &getActor(EntityId id)
     {
-        if (tag >= Setup::Tags)
+        if (id >= Setup::Actors) {
+            _dummyValues.actor.flags = 0;
             return _dummyValues.actor;
+        }
+        return _actors[id];
+    }
+
+    Actor &getActorByTag(const Tag tag)
+    {
+        if (tag >= Setup::Tags) {
+            _dummyValues.actor.flags = 0;
+            return _dummyValues.actor;
+        }
 
         return getActor(_tags[tag]);
     }
-
-    // ---
 
     /// find free id
     bool canSpawn() const
@@ -673,17 +742,6 @@ public:
         return false;
     }
 
-    /// find available
-    // EntityId getFreeEntityId()
-    // {
-    //     for (auto i = 0; i < Setup::Actors; i++) {
-    //         if (_actors[i].flags == 0)
-    //             return i;
-    //     }
-
-    //     return 0;
-    // }
-
     Optional<EntityId> getFreeEntityId()
     {
         for (auto i = 0; i < Setup::Actors; i++) {
@@ -694,7 +752,29 @@ public:
         return Optional<EntityId>::Nullopt();
     }
 
+    // ---
+
     ActorBuilder make(ActorFlags f = 0) { return ActorBuilder { *this, f }; }
+
+    /// Make a copy of Actor if it exists / is non-zero
+    ActorBuilder clone(EntityId id)
+    {
+        if (!isActiveActor(id))
+            return make();
+
+        auto ret = ActorBuilder{*this, getActor(id).flags};
+
+        ret._position = getPosition(id);
+        ret._speed = getSpeed(id);
+        ret._hitpoints = getHitpoints(id);
+
+        ret._collider = getCollider(id);
+        ret._text = getText(id);
+        ret._input = getInput(id);
+        ret._timer = getTimer(id);
+
+        return ret;
+    }
 
     /// remove(Actor) : set class to zero @ entityId
     void remove(EntityId id) { _actors[id].flags = 0; }
@@ -866,6 +946,8 @@ public:
         return ret;
     }
 };
+
+Engine::DummyValues Engine::_dummyValues;
 
 // static Engine &a16{Engine::get()};
 
@@ -1109,8 +1191,277 @@ public:
 
 //
 
+/// Wrapper for 'if let value = Optional<T>' syntax: IF_LET(optional, { value = 0; })
 #define IF_LET(__value, ...) \
     if (__value.has_value()) \
         +[](decltype(__value.value()) value) { __VA_ARGS__ };
+
+/// Wrapper for 'if let ...' syntax with named variable: IF_LET_NAME(optional, v1, { v1 = 0; })
+#define IF_LET_NAME(__value, __value_name, ...) \
+    if (__value.has_value()) \
+        +[](decltype(__value.value()) __value_name) { __VA_ARGS__ };
+
+// ------------------
+// 3D Engine lol
+
+#if RW_WITH_3D
+
+typedef int32_t fixp32; // 16.16 fixed-point
+
+#define FIX_SHIFT 16
+
+static inline fixp32 to_fix(int32_t x)
+{
+    return x << FIX_SHIFT;
+}
+static inline int32_t from_fix(fixp32 x)
+{
+    return x >> FIX_SHIFT;
+}
+#define TO_FIX(x) to_fix(x)
+#define FROM_FIX(x) from_fix(x)
+
+fixp32 operator"" _fp(unsigned long long x)
+{
+    return to_fix(static_cast<int32_t>(x));
+}
+
+#define FIX_MUL(a, b) ((fixp32) (((int64_t) (a) * (b)) >> FIX_SHIFT))
+#define FIX_DIV(a, b) ((fixp32) (((int64_t) (a) << FIX_SHIFT) / (b)))
+
+typedef struct
+{
+    fixp32 x, y, z;
+} Vec3;
+
+typedef struct
+{
+    int8_t p; // compressed for display usage
+} Point;
+
+typedef struct
+{
+    uint8_t v[3]; // indices into vertex array
+} Triangle;
+
+typedef struct
+{
+    uint8_t v[2]; // indices into vertex array
+} Line;
+
+// -----
+
+struct Mat4x4
+{
+    fixp32 m[4][4]; // row-major 4x4 matrix
+
+    static Mat4x4 Identity()
+    {
+        Mat4x4 out = {};
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                out.m[i][j] = 0;
+            }
+        }
+
+        for (int i = 0; i < 4; ++i) {
+            out.m[i][i] = TO_FIX(1);
+        }
+        return out;
+    }
+
+    static Mat4x4 Perspective(fixp32 fov, fixp32 aspect, fixp32 znear, fixp32 zfar)
+    {
+        fixp32 f = FIX_DIV(TO_FIX(1),
+                           FIX_MUL(fov, FIX_DIV(TO_FIX(1), TO_FIX(2)))); // cot(fov/2) ~ 1/fov
+        Mat4x4 m = {0};
+        m.m[0][0] = FIX_DIV(f, aspect);
+        m.m[1][1] = f;
+        m.m[2][2] = FIX_DIV(zfar + znear, znear - zfar);
+        m.m[2][3] = TO_FIX(-1);
+        m.m[3][2] = FIX_DIV(FIX_MUL(TO_FIX(2), FIX_MUL(zfar, znear)), znear - zfar);
+        return m;
+    }
+
+    Vec3 multiplyVec(Vec3 v)
+    {
+        auto m = this;
+        fixp32 x = FIX_MUL(m->m[0][0], v.x) + FIX_MUL(m->m[0][1], v.y) + FIX_MUL(m->m[0][2], v.z)
+                   + m->m[0][3];
+        fixp32 y = FIX_MUL(m->m[1][0], v.x) + FIX_MUL(m->m[1][1], v.y) + FIX_MUL(m->m[1][2], v.z)
+                   + m->m[1][3];
+        fixp32 z = FIX_MUL(m->m[2][0], v.x) + FIX_MUL(m->m[2][1], v.y) + FIX_MUL(m->m[2][2], v.z)
+                   + m->m[2][3];
+        fixp32 w = FIX_MUL(m->m[3][0], v.x) + FIX_MUL(m->m[3][1], v.y) + FIX_MUL(m->m[3][2], v.z)
+                   + m->m[3][3];
+
+        if (w != 0) {
+            x = FIX_DIV(x, w);
+            y = FIX_DIV(y, w);
+            z = FIX_DIV(z, w);
+        }
+
+        return (Vec3) {x, y, z};
+    }
+};
+
+// -----
+
+struct Engine3D
+{
+    uint8_t buffer[8][8];
+
+    Vec3 vertex[16];
+    Vec3 projVertex[16];
+
+    Line line[16];
+    uint8_t lineCount{0};
+
+    uint8_t point[16];
+    uint8_t pointCount{0};
+
+    Mat4x4 projection{Mat4x4::Perspective(45, 1, 0, 100)};
+
+    // void drawLine(Vec3 a, Vec3 b)
+    // {
+    //     int x0 = FROM_FIX(a.x);
+    //     int y0 = FROM_FIX(a.y);
+    //     int x1 = FROM_FIX(b.x);
+    //     int y1 = FROM_FIX(b.y);
+
+    //     int dx = abs(x1 - x0);
+    //     int dy = abs(y1 - y0);
+    //     int sx = x0 < x1 ? 1 : -1;
+    //     int sy = y0 < y1 ? 1 : -1;
+    //     int err = dx - dy;
+    //     while (1) {
+    //         // plot(x0, y0);
+    //         drawToBuffer(x0, y0);
+    //         if (x0 == x1 && y0 == y1)
+    //             break;
+    //         int e2 = 2 * err;
+    //         if (e2 >= dy) {
+    //             err += dy;
+    //             x0 += sx;
+    //         }
+    //         if (e2 <= dx) {
+    //             err += dx;
+    //             y0 += sy;
+    //         }
+    //     }
+    // }
+
+    void drawLine(Vec3 a, Vec3 b)
+    {
+        int x0 = FROM_FIX(a.x);
+        int y0 = FROM_FIX(a.y);
+        int x1 = FROM_FIX(b.x);
+        int y1 = FROM_FIX(b.y);
+
+        int dx = abs(x1 - x0);
+        int dy = abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true) {
+            drawToBuffer(x0, y0);
+            if (x0 == x1 && y0 == y1)
+                break;
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
+
+    void drawPoint(Vec3 a) { drawToBuffer(FROM_FIX(a.x), FROM_FIX(a.y)); }
+
+    void drawToBuffer(int x, int y)
+    {
+        // graphic screen: 20x16
+        if (x > 20)
+            return;
+        if (y >= 16)
+            return;
+        if (x < 0)
+            return;
+        if (y < 0)
+            return;
+
+        auto idx = (x / 5) + (y / 8) * 4; //(floor(x/5) + floor(y/8)*4);
+        auto bitNumber = 4 - x % 5;
+        auto byteNumber = y % 8;
+
+        buffer[idx][byteNumber] |= 0x1 << bitNumber;
+    }
+
+    /// To be called after matrix update
+    void prepare()
+    {
+        for (int i = 0; i < 16; ++i) {
+            projVertex[i] = projection.multiplyVec(vertex[i]);
+        }
+    }
+
+    void clear()
+    {
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++)
+                buffer[i][j] = 0;
+    }
+
+    void render()
+    {
+        clear();
+
+        for (int i = 0; i < lineCount; ++i) {
+            const auto v1 = line[i].v[0];
+            const auto v2 = line[i].v[1];
+
+            if (v1 >= 16)
+                continue;
+            if (v2 >= 16)
+                continue;
+
+            // projVertex
+            auto a = projVertex[v1];
+            auto b = projVertex[v2];
+
+            drawLine(a, b);
+        }
+
+        for (int i = 0; i < pointCount; ++i) {
+            const auto v1 = point[i];
+
+            if (v1 >= 16)
+                continue;
+
+            // projVertex
+            auto a = projVertex[v1];
+
+            drawPoint(a);
+        }
+    }
+
+protected:
+    Engine3D() {}
+
+public:
+    static Engine3D &get()
+    {
+        static Engine3D obj;
+        return obj;
+    }
+};
+
+#define R3D Engine3D::get()
+
+#endif
 
 } // namespace rwe
