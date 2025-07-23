@@ -1,13 +1,13 @@
 # rowguelike
 
 ```"Just because you can, doesn’t mean you should"```
-    
-  
+
 ## 📟 The Game Engine for small LCD text screens. "As not seen on TV"
-  
 ![C++ CI](https://github.com/njazz/rowguelike/actions/workflows/cmake-multi-platform.yml/badge.svg)  
 ![Arduino](https://github.com/njazz/rowguelike/actions/workflows/arduino-builds.yml/badge.svg)  
-  
+
+![](pong.gif "")
+
 **Targets:** Arduino, \*nix Terminal  
 **Version:** 0.0.3
   
@@ -209,3 +209,6 @@ SWITCH_PAGE(index)
 #define RWE Engine::get() // Engine singleton
 
 ```
+
+---
+Arduino is a registered trademark of its respective owners. This project is not affiliated with or endorsed by Arduino.
