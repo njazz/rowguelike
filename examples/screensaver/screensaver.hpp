@@ -1,3 +1,6 @@
+/// @file screensaver.hpp
+/// draws all possible characters around the screen
+
 #pragma once
 
 #include "rowguelike.hpp"

@@ -8,6 +8,7 @@
 namespace rwe {
 
 // ------------------------------------------------------------------------------
+// Setup
 
 #ifndef RW_SETUP_SCREEN_WIDTH
 #define RW_SETUP_SCREEN_WIDTH 16
@@ -37,23 +38,44 @@ namespace rwe {
 #define RW_SETUP_MAX_VIEWPORT_SCALE 0
 #endif
 
-#ifndef RW_HIGH_RESOLUTION_POSITION
-#define RW_HIGH_RESOLUTION_POSITION false
+#ifndef RW_SETUP_HIGH_RESOLUTION_POSITION
+#define RW_SETUP_HIGH_RESOLUTION_POSITION false
 #endif
 
-#ifndef RW_MOVE_OUTSIDE_SCREEN
-#define RW_MOVE_OUTSIDE_SCREEN false
+#ifndef RW_SETUP_MOVE_OUTSIDE_SCREEN
+#define RW_SETUP_MOVE_OUTSIDE_SCREEN false
 #endif
 
-#ifndef RW_PAGE_COUNT
-#define RW_PAGE_COUNT 16
+#ifndef RW_SETUP_PAGE_COUNT
+#define RW_SETUP_PAGE_COUNT 16
 #endif
 
-#ifndef RW_WITH_3D
-#define RW_WITH_3D false
+#ifndef RW_SETUP_WITH_3D
+#define RW_SETUP_WITH_3D false
 #endif
+
+// <=0.0.3 definitios: display error
+#define _RW_DEFINE_ERROR_DEPRECATED_MACRO(NAME) \
+    template<typename T = void> \
+    struct __Error_Please_Use_##NAME \
+    {};
+
+#define _RW_REPORT_ERROR(NAME) __Error_Please_Use_##NAME<>::error
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_HIGH_RESOLUTION_POSITION)
+#define RW_HIGH_RESOLUTION_POSITION __error_RW_HIGH_RESOLUTION_POSITION<>::error
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_MOVE_OUTSIDE_SCREEN)
+#define RW_MOVE_OUTSIDE_SCREEN _RW_REPORT_ERROR(RW_SETUP_MOVE_OUTSIDE_SCREEN)
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_PAGE_COUNT)
+#define RW_PAGE_COUNT _RW_REPORT_ERROR(RW_SETUP_PAGE_COUNT)
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_WITH_3D)
+#define RW_WITH_3D _RW_REPORT_ERROR(RW_SETUP_WITH_3D)
 
 // ------------------------------------------------------------------------------
+// Typed values for Setup
 
 struct Setup {
     /// Minimal screen is a 1x1, unfortunatyely the 0x0 LCD is not supported
@@ -68,14 +90,20 @@ struct Setup {
     static constexpr uint8_t SharedNumbers { RW_SETUP_SHARED_NUMBERS };
     static constexpr uint8_t SharedStrings { RW_SETUP_SHARED_STRINGS };
 
+    static constexpr bool HighResolutionPosition{RW_SETUP_HIGH_RESOLUTION_POSITION};
+    static constexpr uint8_t MaxViewportScaleBitOffset{HighResolutionPosition ? 9 : 3};
     /// Bit offset for higher resolution
     /// NB: for position using int8_t this is valid in range 0..3
     /// for high-resolution position mode it's 0..9
-    static constexpr uint8_t MaxViewportScale{RW_SETUP_MAX_VIEWPORT_SCALE};
+    static constexpr uint8_t MaxViewportScale{
+        RW_SETUP_MAX_VIEWPORT_SCALE < MaxViewportScaleBitOffset ? RW_SETUP_MAX_VIEWPORT_SCALE
+                                                                : MaxViewportScaleBitOffset};
 
-    static constexpr bool MoveOutsideScreen{RW_MOVE_OUTSIDE_SCREEN};
+    static constexpr bool MoveOutsideScreen{RW_SETUP_MOVE_OUTSIDE_SCREEN};
 
-    static constexpr uint8_t PageCount{RW_PAGE_COUNT};
+    static constexpr uint8_t PageCount{RW_SETUP_PAGE_COUNT};
+
+    static constexpr bool With3D{RW_SETUP_WITH_3D};
 };
 
 // ------------------------------------------------------------------------------
@@ -1209,7 +1237,7 @@ public:
 // ------------------
 // 3D Engine lol
 
-#if RW_WITH_3D
+#if RW_SETUP_WITH_3D
 
 typedef int32_t fixp32; // 16.16 fixed-point
 

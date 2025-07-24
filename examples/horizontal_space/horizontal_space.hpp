@@ -1,3 +1,6 @@
+/// @file horizontal_space.hpp
+/// horizontal version of classic arcade shooter game
+
 #pragma once
 
 #include "rowguelike.hpp"

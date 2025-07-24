@@ -1,3 +1,6 @@
+/// @file birds.hpp
+/// Custom character demo with animation
+
 #pragma once
 
 #include "rowguelike.hpp"

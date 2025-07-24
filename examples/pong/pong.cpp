@@ -8,7 +8,7 @@
 
 int main()
 {
-    setupExamplePong();
+    setupPong();
     terminalRunLoop();
 }
 

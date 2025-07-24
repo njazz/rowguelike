@@ -1,3 +1,6 @@
+/// @file pages.hpp
+/// Simple text pages example
+
 #include "rowguelike.hpp"
 
 using namespace rwe ;

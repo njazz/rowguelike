@@ -1,3 +1,6 @@
+/// @file one.hpp
+/// first test of a very basic game
+
 #include "rowguelike.hpp"
 
 using namespace rwe ;
@@ -107,89 +110,3 @@ void setupOne()
     character.spawn();
     target.spawn();
 }
-
-// ---
-
-//    auto splashScreen = RWE //
-//                            .make(Actor::Text | Actor::Input)
-//                            .text(" Test Game      ", "Press SELECT key")
-//                            .inputHandler(+[](const EntityId &receiver, const RawInput &input) {
-//                                if (input.select == false)
-//                                    return;
-//
-//                                auto background = RWE //
-//                                                      .make(Actor::Text)
-//                                                      .text("                ", "                ");
-//
-//                                auto character = RWE //
-//                                                     .make(Actor::Text | Actor::Move
-//                                                           | Actor::Control | Actor::Input)
-//                                                     .text("#")
-//                                                     .position(7, 0)
-//                                                     .inputHandler(INPUTHANDLER_FN {
-//                                                         if (rawInput.select) {
-//                                                             auto &p = RWE.getPosition(receiver);
-//
-//                                                             RWE.getPosition(projectile) = p;
-//                                                             RWE.getPosition(projectile).x += 1;
-//                                                             RWE.getSpeed(projectile).vx = 1;
-//                                                             RWE.getText(projectile).line[0] = ".";
-//
-//                                                             // if (p.x >= 1)
-//                                                             //     p.x -= 1;
-//
-//                                                             // .spawn()
-//                                                             //
-//                                                             ;
-//                                                             ;
-//                                                         }
-//                                                     })
-//
-//                                    //
-//
-//                                    ;
-//
-//                                auto target = RWE //
-//                                                  .make()
-//                                                  .text("9")
-//                                                  .position(15, 0)
-//                                                  .collider(0, HitPeer)
-//                                                  .hitpoints(9)
-//                                                  .timer(
-//                                                      2, TIMER_FN {
-//                                                          auto &t = RWE.getText(receiver);
-//                                                          auto &hp = RWE.getHitpoints(receiver);
-//                                                          if (hp.hp == 9)
-//                                                              t.line[0] = "9";
-//                                                          if (hp.hp == 8)
-//                                                              t.line[0] = "8";
-//                                                          if (hp.hp == 7)
-//                                                              t.line[0] = "7";
-//                                                          if (hp.hp == 6)
-//                                                              t.line[0] = "6";
-//                                                          if (hp.hp == 5)
-//                                                              t.line[0] = "5";
-//                                                          if (hp.hp == 4)
-//                                                              t.line[0] = "4";
-//                                                          if (hp.hp == 3)
-//                                                              t.line[0] = "3";
-//                                                          if (hp.hp == 2)
-//                                                              t.line[0] = "2";
-//                                                          if (hp.hp == 1)
-//                                                              t.line[0] = "1";
-//                                                      });
-//
-//                                background.spawn();
-//                                character.spawn();
-//                                target.spawn();
-//
-//                                // hide text:
-//                                RWE.getText(0).line[0] = "";
-//                                RWE.getText(0).line[1] = "";
-//
-//                                // RWE.remove(0);
-//                            })
-//        //
-//        ;
-//
-//    splashScreen.spawn();

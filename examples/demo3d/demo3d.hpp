@@ -1,7 +1,10 @@
+/// @file demo3d.hpp
+/// basic demo of "3d engine"
+
 #pragma once
 
 #define RW_SETUP_ACTORS 4 // reduce memory usage
-#define RW_WITH_3D true
+#define RW_SETUP_WITH_3D true
 
 #include "rowguelike.hpp"
 #include <stdlib.h>
