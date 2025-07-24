@@ -673,11 +673,20 @@ public:
     };
     ViewportScroll viewportScroll {};
 
-    Engine()
+    void reset()
     {
         for (int i = 0; i < Setup::Actors; i++)
             _actors[i].flags = 0;
+        for (int i = 0; i < Setup::Tags; i++)
+            _tags[i] = 0;
+
+        viewportScroll = ViewportScroll();
     }
+
+    Engine() { reset(); }
+
+    Engine(const Engine &) = delete;
+    Engine &operator=(const Engine &) = delete;
 
     // ---
     // Component getters
@@ -1216,9 +1225,9 @@ public:
         if (idx >= Setup::PageCount)
             return;
 
-        auto ctx = RWE.drawContext;
-        RWE = ::rwe::Engine();
-        RWE.drawContext = ctx;
+        // auto ctx = RWE.drawContext;
+        RWE.reset();
+        // RWE.drawContext = ctx;
         _pages[idx](RWE);
     }
 

@@ -83,7 +83,7 @@ struct Snake
 
         segmentsSize = 0;
 
-        engine = Engine();
+        engine.reset(); // = Engine();
 
         SharedData::Element e;
         e.ptr = this;

@@ -95,14 +95,14 @@ void SpawnEnemy()
                     RWE.remove(receiver);
 
                     //
-                    RWE = Engine();
+                    RWE.reset(); // = Engine();
 
                     RWE.make() //
                         .text("   Game Over    ", "                ")
                         .timer(
                             20,
                             TIMER_FN {
-                                RWE = Engine();
+                                RWE.reset(); // = Engine();
                                 setupHorizontalSpace();
                             })
                         .spawn();

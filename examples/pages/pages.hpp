@@ -19,7 +19,7 @@ void setupPages()
 
     SET_PAGE_(1, {
         page.make() //
-            .text("< Second Page")
+            .text("< Second Page   ")
             .input(INPUT_FN {
                 if (rawInput.left)
                     SWITCH_PAGE(0);
