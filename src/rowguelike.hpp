@@ -345,10 +345,13 @@ struct DrawContext {
     void (*peerClearAll)(void *ctx){+[](void *) {
 
     }};
-    void (*peerAddText)(void* ctx, int8_t x, int8_t y, const char* txt) { nullptr };
+    void (*peerAddText)(void *ctx, int8_t x, int8_t y, const char *txt){
+        +[](void *, int8_t, int8_t, const char *) {}};
 
-    void (*peerDefineChar)(void* ctx, uint8_t idx, const CustomCharacter c) { nullptr };
-    void (*peerAddChar)(void* ctx, int8_t x, int8_t y, const uint8_t id) { nullptr };
+    void (*peerDefineChar)(void *ctx, uint8_t idx, const CustomCharacter c){
+        +[](void *, uint8_t, const CustomCharacter) {}};
+    void (*peerAddChar)(void *ctx, int8_t x, int8_t y, const uint8_t id){
+        +[](void *ctx, int8_t x, int8_t y, const uint8_t id) {}};
 
     /// NB: must be set by 'frontend', is '8' for LiquidCrystal library
     uint8_t customCharacters { 0 };
@@ -415,6 +418,9 @@ struct DrawContext {
         for (int i = 0; i < static_cast<int>(len); i++) {
             buffer[y][x + i] = txt[i];
         }
+
+        if (ctx)
+            peerAddText(ctx, x, y, txt);
     }
 
     void _begin()

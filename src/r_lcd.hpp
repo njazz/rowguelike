@@ -54,6 +54,19 @@ struct RowguelikeLCD
             lcd_->setCursor(x, y);
             lcd_->write(id);
         };
+        // direct draw command for disableDirectBufferDraw==1 mode:
+        RWE.drawContext.peerAddText = +[](void *ctx, int8_t x, int8_t y, const char *txt) {
+            if (!ctx)
+                return;
+
+            // NB: run this only for custom character rendering mode enabled
+            if (!RWE.drawContext.disableDirectBufferDraw)
+                return;
+
+            auto lcd_ = (LiquidCrystal *) ctx;
+            lcd_->setCursor(x, y);
+            lcd_->print(txt);
+        };
     }
 
     // TODO: move
