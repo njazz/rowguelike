@@ -1,0 +1,26 @@
+# https://github.com/arduino/arduino-lint-action
+
+on:
+  push:
+    branches:
+      - dev-1
+      - main
+  pull_request:
+    branches:
+      - dev-1
+      - main
+
+name: Arduino Library Lint
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: arduino/arduino-lint-action@v2
+        with:
+          library-manager: update
+          compliance: strict
+          project-type: library
+          verbose: true
