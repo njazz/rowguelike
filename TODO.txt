@@ -5,6 +5,7 @@
 [ ] score in example games
 [ ] re-use buffer for custom characters
 [ ] shared data typed seter/geter
+[ ] pre-defined actors for pages
 
 Example games:
 [ ] Maze Walker

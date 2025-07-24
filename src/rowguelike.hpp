@@ -765,6 +765,14 @@ public:
         return getActor(_tags[tag]);
     }
 
+    Optional<EntityId> getIdByTag(Tag tag)
+    {
+        if (tag >= Setup::Tags)
+            return Optional<EntityId>::Nullopt();
+
+        return _tags[tag];
+    }
+
     /// find free id
     bool canSpawn() const
     {
@@ -1208,7 +1216,9 @@ public:
         if (idx >= Setup::PageCount)
             return;
 
+        auto ctx = RWE.drawContext;
         RWE = ::rwe::Engine();
+        RWE.drawContext = ctx;
         _pages[idx](RWE);
     }
 
