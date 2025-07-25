@@ -21,33 +21,102 @@ Available as Arduino library or Platform.io library
 The game is defined by a set of 'Actors'
 - Create an actor builder from the Engine singleton, optionally providing flags:  
 
-    ```Engine::get().make(Actor::Move | Actor::Control) ```
+    ```Engine::get().make(Actor::Move | Actor::Control) ```  
+    or with the macro **RWE** as the alias to **Engine::get()** :  
+    ```RWE.make(Actor::Move | Actor::Control)```
+    
 - Continue with custom values for Actor's Components:  
 
-    ``` .text("Text").position(3,0) ```
+```
+/* ... */
+.text("Text")
+.position(3,0) 
+```
+
 - Call ```spawn()``` to make an instance of Actor from ActorBuilder
 
-Full example:
+#### Full example including all components
 
 ```c++
 using namespace rwe;
 
-Engine::get().make()
-	.text("Hello world")
-	.position(0,0)
-	.tag(1)
-	.timer(10, TIMER_FN{
-                        auto id = Engine::get().getActorByTag(1);
-			auto p = Engine::get().getPosition(id);
+RWE.make()
+    // Position on screen
+    .position(0,0)
+    
+    // Initialize with random position
+    .randomPosition()
+    
+    // Text to display; supports 1 or two lines
+    .text("Hello world")
+    
+    // Adds n-th line of text
+    .textLine(1,"")
+    
+    // Control this Actor with buttons 
+    .control()
+    
+    // Speed
+    .speed(0,0)
+    
+    // Hitpoints. When enabled and when reached 0, the Actor is removed
+    .hitpoints(1)
+    
+    // Value for the collider function and the function
+    .collider(1, COLLIDER_FN{
+        if (TEST_HIT){
+            // provided Actor ids: receiver, peer
+        }
+    })
+    
+    // Adds input handler function
+    .input(INPUT_FN{
+        // provided Actor id: receiver
+    })
+    
+    // Adds timer function that would be called each N-th frame
+    .timer(10, TIMER_FN{
+        // provided Actor id: receiver
+        auto p = Engine::get().getPosition(receiver);
 
-			Engine.get().make()
-				.position(p)
-				.speed(1,0)
-				.spawn();
-		})
-	.spawn();
+        // Example: spawn a new one here
+        Engine.get().make()
+                .position(p)
+                .speed(1,0)
+                .spawn();
+    })
+    
+    // Stores this Actor in Engine's tags list
+    .tag(1)
+    
+    // Last one to create an instance
+    .spawn();
 
 
+
+```
+
+#### Minimal setup for the Arduino and 16x2 LCD  
+
+```c++
+// Includes both 'rowguelike' library and lcd code
+// Requires LiquidCrystal library
+#include "r_lcd.hpp"
+
+// Setup lcd & engine
+RowguelikeLCD rlcd {8,9,4,5,6,7};
+
+void setup() {
+  // Start LCD
+  rlcd.setup(16,2);
+  // Setup your game here:
+  // ...
+}
+
+void loop() {
+  // Frame delay time in milliseconds
+  rlcd.loop(150);
+}
 
 ```
 
