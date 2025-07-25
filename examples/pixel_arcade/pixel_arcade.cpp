@@ -1,15 +1,16 @@
 #ifndef ARDUINO
 
-#include "pong.hpp"
+#include "pixel_arcade.hpp"
 #include "r_terminal.hpp"
-
 
 // === MAIN ===
 
 int main()
 {
-    setupPong();
+    setupPixelArcade();
     terminalRunLoop();
+
+    IF_LET(RWE.make().spawn(), { value = 0; });
 }
 
 #endif

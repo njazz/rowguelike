@@ -1,6 +1,6 @@
 {
   "name": "rowguelike",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "keywords": ["header-only", "utility", "arduino"],
   "description": "The Game Engine for small LCD screen. \"As not seen on TV\"",
   "repository": {

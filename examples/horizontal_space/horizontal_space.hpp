@@ -1,3 +1,6 @@
+/// @file horizontal_space.hpp
+/// horizontal version of classic arcade shooter game
+
 #pragma once
 
 #include "rowguelike.hpp"
@@ -92,14 +95,14 @@ void SpawnEnemy()
                     RWE.remove(receiver);
 
                     //
-                    RWE = Engine();
+                    RWE.reset(); // = Engine();
 
                     RWE.make() //
                         .text("   Game Over    ", "                ")
                         .timer(
                             20,
                             TIMER_FN {
-                                RWE = Engine();
+                                RWE.reset(); // = Engine();
                                 setupHorizontalSpace();
                             })
                         .spawn();

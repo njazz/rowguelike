@@ -8,6 +8,7 @@
 namespace rwe {
 
 // ------------------------------------------------------------------------------
+// Setup
 
 #ifndef RW_SETUP_SCREEN_WIDTH
 #define RW_SETUP_SCREEN_WIDTH 16
@@ -37,23 +38,44 @@ namespace rwe {
 #define RW_SETUP_MAX_VIEWPORT_SCALE 0
 #endif
 
-#ifndef RW_HIGH_RESOLUTION_POSITION
-#define RW_HIGH_RESOLUTION_POSITION false
+#ifndef RW_SETUP_HIGH_RESOLUTION_POSITION
+#define RW_SETUP_HIGH_RESOLUTION_POSITION false
 #endif
 
-#ifndef RW_MOVE_OUTSIDE_SCREEN
-#define RW_MOVE_OUTSIDE_SCREEN false
+#ifndef RW_SETUP_MOVE_OUTSIDE_SCREEN
+#define RW_SETUP_MOVE_OUTSIDE_SCREEN false
 #endif
 
-#ifndef RW_PAGE_COUNT
-#define RW_PAGE_COUNT 16
+#ifndef RW_SETUP_PAGE_COUNT
+#define RW_SETUP_PAGE_COUNT 16
 #endif
 
-#ifndef RW_WITH_3D
-#define RW_WITH_3D false
+#ifndef RW_SETUP_WITH_3D
+#define RW_SETUP_WITH_3D false
 #endif
+
+// <=0.0.3 definitios: display error
+#define _RW_DEFINE_ERROR_DEPRECATED_MACRO(NAME) \
+    template<typename T = void> \
+    struct __Error_Please_Use_##NAME \
+    {};
+
+#define _RW_REPORT_ERROR(NAME) __Error_Please_Use_##NAME<>::error
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_HIGH_RESOLUTION_POSITION)
+#define RW_HIGH_RESOLUTION_POSITION __error_RW_HIGH_RESOLUTION_POSITION<>::error
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_MOVE_OUTSIDE_SCREEN)
+#define RW_MOVE_OUTSIDE_SCREEN _RW_REPORT_ERROR(RW_SETUP_MOVE_OUTSIDE_SCREEN)
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_PAGE_COUNT)
+#define RW_PAGE_COUNT _RW_REPORT_ERROR(RW_SETUP_PAGE_COUNT)
+
+_RW_DEFINE_ERROR_DEPRECATED_MACRO(RW_SETUP_WITH_3D)
+#define RW_WITH_3D _RW_REPORT_ERROR(RW_SETUP_WITH_3D)
 
 // ------------------------------------------------------------------------------
+// Typed values for Setup
 
 struct Setup {
     /// Minimal screen is a 1x1, unfortunatyely the 0x0 LCD is not supported
@@ -68,14 +90,20 @@ struct Setup {
     static constexpr uint8_t SharedNumbers { RW_SETUP_SHARED_NUMBERS };
     static constexpr uint8_t SharedStrings { RW_SETUP_SHARED_STRINGS };
 
+    static constexpr bool HighResolutionPosition{RW_SETUP_HIGH_RESOLUTION_POSITION};
+    static constexpr uint8_t MaxViewportScaleBitOffset{HighResolutionPosition ? 9 : 3};
     /// Bit offset for higher resolution
     /// NB: for position using int8_t this is valid in range 0..3
     /// for high-resolution position mode it's 0..9
-    static constexpr uint8_t MaxViewportScale{RW_SETUP_MAX_VIEWPORT_SCALE};
+    static constexpr uint8_t MaxViewportScale{
+        RW_SETUP_MAX_VIEWPORT_SCALE < MaxViewportScaleBitOffset ? RW_SETUP_MAX_VIEWPORT_SCALE
+                                                                : MaxViewportScaleBitOffset};
 
-    static constexpr bool MoveOutsideScreen{RW_MOVE_OUTSIDE_SCREEN};
+    static constexpr bool MoveOutsideScreen{RW_SETUP_MOVE_OUTSIDE_SCREEN};
 
-    static constexpr uint8_t PageCount{RW_PAGE_COUNT};
+    static constexpr uint8_t PageCount{RW_SETUP_PAGE_COUNT};
+
+    static constexpr bool With3D{RW_SETUP_WITH_3D};
 };
 
 // ------------------------------------------------------------------------------
@@ -317,10 +345,13 @@ struct DrawContext {
     void (*peerClearAll)(void *ctx){+[](void *) {
 
     }};
-    void (*peerAddText)(void* ctx, int8_t x, int8_t y, const char* txt) { nullptr };
+    void (*peerAddText)(void *ctx, int8_t x, int8_t y, const char *txt){
+        +[](void *, int8_t, int8_t, const char *) {}};
 
-    void (*peerDefineChar)(void* ctx, uint8_t idx, const CustomCharacter c) { nullptr };
-    void (*peerAddChar)(void* ctx, int8_t x, int8_t y, const uint8_t id) { nullptr };
+    void (*peerDefineChar)(void *ctx, uint8_t idx, const CustomCharacter c){
+        +[](void *, uint8_t, const CustomCharacter) {}};
+    void (*peerAddChar)(void *ctx, int8_t x, int8_t y, const uint8_t id){
+        +[](void *ctx, int8_t x, int8_t y, const uint8_t id) {}};
 
     /// NB: must be set by 'frontend', is '8' for LiquidCrystal library
     uint8_t customCharacters { 0 };
@@ -387,6 +418,9 @@ struct DrawContext {
         for (int i = 0; i < static_cast<int>(len); i++) {
             buffer[y][x + i] = txt[i];
         }
+
+        if (ctx)
+            peerAddText(ctx, x, y, txt);
     }
 
     void _begin()
@@ -484,6 +518,14 @@ public:
         Components::Timer _timer;
 
     public:
+        ActorBuilder &position(int8_t x, int8_t y)
+        {
+            auto& p = _position;
+            p.x = x;
+            p.y = y;
+            return *this;
+        }
+
         /// Random position on screen w/o range
         ActorBuilder &randomPosition()
         {
@@ -493,11 +535,26 @@ public:
             return *this;
         }
 
-        ActorBuilder &position(int8_t x, int8_t y)
+        ActorBuilder &text(const char *l0, const char *l1 = nullptr)
         {
-            auto& p = _position;
-            p.x = x;
-            p.y = y;
+            _flags |= Actor::Text;
+
+            auto &p = _text;
+            p.line[0] = l0;
+            p.line[1] = l1;
+            return *this;
+        }
+        ActorBuilder &textLine(const uint8_t line, const char *l0)
+        {
+            if (line >= Setup::ScreenHeight)
+                return *this;
+
+            _flags |= Actor::Text;
+
+            auto &p = _text;
+
+            p.line[line] = l0;
+
             return *this;
         }
         ActorBuilder &control()
@@ -533,28 +590,7 @@ public:
             p.colliderFn = fn;
             return *this;
         }
-        ActorBuilder &text(const char *l0, const char *l1 = nullptr)
-        {
-            _flags |= Actor::Text;
 
-            auto& p = _text;
-            p.line[0] = l0;
-            p.line[1] = l1;
-            return *this;
-        }
-        ActorBuilder &textLine(const uint8_t line, const char *l0)
-        {
-            if (line >= Setup::ScreenHeight)
-                return *this;
-
-            _flags |= Actor::Text;
-
-            auto &p = _text;
-
-            p.line[line] = l0;
-
-            return *this;
-        }
         ActorBuilder &input(InputFn fn)
         {
             _flags |= Actor::Input;
@@ -645,11 +681,20 @@ public:
     };
     ViewportScroll viewportScroll {};
 
-    Engine()
+    void reset()
     {
         for (int i = 0; i < Setup::Actors; i++)
             _actors[i].flags = 0;
+        for (int i = 0; i < Setup::Tags; i++)
+            _tags[i] = 0;
+
+        viewportScroll = ViewportScroll();
     }
+
+    Engine() { reset(); }
+
+    Engine(const Engine &) = delete;
+    Engine &operator=(const Engine &) = delete;
 
     // ---
     // Component getters
@@ -735,6 +780,14 @@ public:
         }
 
         return getActor(_tags[tag]);
+    }
+
+    Optional<EntityId> getIdByTag(Tag tag)
+    {
+        if (tag >= Setup::Tags)
+            return Optional<EntityId>::Nullopt();
+
+        return _tags[tag];
     }
 
     /// find free id
@@ -1123,13 +1176,13 @@ void TimerRemoveThis(const ::rwe::EntityId &receiver)
 namespace A {
 
 /// clear background ScreenWidth x ScreenHeight
-static inline Engine::ActorBuilder Background(const char symbol = ' ')
+static inline Engine::ActorBuilder Background(Engine &ctx = RWE, const char symbol = ' ')
 {
     static char textLine[Setup::ScreenWidth];
     for (int i = 0; i < Setup::ScreenWidth; i++)
         textLine[i] = symbol;
 
-    auto r = Engine::get() //
+    auto r = ctx //
                  .make();
 
     for (int i = 0; i < Setup::ScreenHeight; i++)
@@ -1137,14 +1190,24 @@ static inline Engine::ActorBuilder Background(const char symbol = ' ')
 
     return r;
 }
+static inline Engine::ActorBuilder Background(const char symbol)
+{
+    return Background(RWE, symbol);
+}
 
-    /// Movable player character
-    static inline Engine::ActorBuilder PlayerChar(const char* c = "#")
-    {
-        return Engine::get() //
-            .make(Actor::Move | Actor::Control)
-            .text(c);
-    }
+/// Movable player character
+static inline Engine::ActorBuilder PlayerChar(Engine &ctx = RWE, const char *c = "#")
+{
+    return ctx //
+        .make(Actor::Move | Actor::Control)
+        .text(c);
+}
+
+// alias
+static inline Engine::ActorBuilder PlayerChar(const char *c)
+{
+    return PlayerChar(RWE, c);
+}
 
 } // namespace A
 
@@ -1180,7 +1243,9 @@ public:
         if (idx >= Setup::PageCount)
             return;
 
-        RWE = ::rwe::Engine();
+        // auto ctx = RWE.drawContext;
+        RWE.reset();
+        // RWE.drawContext = ctx;
         _pages[idx](RWE);
     }
 
@@ -1209,7 +1274,7 @@ public:
 // ------------------
 // 3D Engine lol
 
-#if RW_WITH_3D
+#if RW_SETUP_WITH_3D
 
 typedef int32_t fixp32; // 16.16 fixed-point
 

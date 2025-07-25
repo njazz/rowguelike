@@ -1,3 +1,6 @@
+/// @ file snake.hpp
+/// Classic snake game implementation
+
 #pragma once
 
 #include "rowguelike.hpp"
@@ -5,9 +8,6 @@
 #include <stdlib.h>
 
 using namespace rwe ;
-
-// constexpr int8_t kGridWidth = 16;
-// constexpr int8_t kGridHeight = 2;
 
 constexpr int8_t maxElements{32};
 
@@ -83,7 +83,7 @@ struct Snake
 
         segmentsSize = 0;
 
-        engine = Engine();
+        engine.reset(); // = Engine();
 
         SharedData::Element e;
         e.ptr = this;
