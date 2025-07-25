@@ -86,6 +86,14 @@ add_executable(r_demo3d
 target_link_libraries(r_demo3d PRIVATE rowguelike)
 
 ###
+add_executable(r_pixel_arcade
+    examples/pixel_arcade/pixel_arcade.hpp
+    examples/pixel_arcade/pixel_arcade.cpp
+)
+
+target_link_libraries(r_pixel_arcade PRIVATE rowguelike)
+
+###
 add_custom_target(docs)
 target_sources(docs PRIVATE
     README.md
