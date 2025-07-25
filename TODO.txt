@@ -5,7 +5,6 @@
 [ ] score in example games
 [ ] re-use buffer for custom characters
 [ ] shared data typed seter/geter
-[ ] pre-defined actors for pages
 [ ] full screen "graphics" mode - list draw commands; write to characters, place characters
 
 Example games:

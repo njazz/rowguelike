@@ -518,6 +518,14 @@ public:
         Components::Timer _timer;
 
     public:
+        ActorBuilder &position(int8_t x, int8_t y)
+        {
+            auto& p = _position;
+            p.x = x;
+            p.y = y;
+            return *this;
+        }
+
         /// Random position on screen w/o range
         ActorBuilder &randomPosition()
         {
@@ -527,11 +535,26 @@ public:
             return *this;
         }
 
-        ActorBuilder &position(int8_t x, int8_t y)
+        ActorBuilder &text(const char *l0, const char *l1 = nullptr)
         {
-            auto& p = _position;
-            p.x = x;
-            p.y = y;
+            _flags |= Actor::Text;
+
+            auto &p = _text;
+            p.line[0] = l0;
+            p.line[1] = l1;
+            return *this;
+        }
+        ActorBuilder &textLine(const uint8_t line, const char *l0)
+        {
+            if (line >= Setup::ScreenHeight)
+                return *this;
+
+            _flags |= Actor::Text;
+
+            auto &p = _text;
+
+            p.line[line] = l0;
+
             return *this;
         }
         ActorBuilder &control()
@@ -567,28 +590,7 @@ public:
             p.colliderFn = fn;
             return *this;
         }
-        ActorBuilder &text(const char *l0, const char *l1 = nullptr)
-        {
-            _flags |= Actor::Text;
 
-            auto& p = _text;
-            p.line[0] = l0;
-            p.line[1] = l1;
-            return *this;
-        }
-        ActorBuilder &textLine(const uint8_t line, const char *l0)
-        {
-            if (line >= Setup::ScreenHeight)
-                return *this;
-
-            _flags |= Actor::Text;
-
-            auto &p = _text;
-
-            p.line[line] = l0;
-
-            return *this;
-        }
         ActorBuilder &input(InputFn fn)
         {
             _flags |= Actor::Input;
@@ -1174,13 +1176,13 @@ void TimerRemoveThis(const ::rwe::EntityId &receiver)
 namespace A {
 
 /// clear background ScreenWidth x ScreenHeight
-static inline Engine::ActorBuilder Background(const char symbol = ' ')
+static inline Engine::ActorBuilder Background(Engine &ctx = RWE, const char symbol = ' ')
 {
     static char textLine[Setup::ScreenWidth];
     for (int i = 0; i < Setup::ScreenWidth; i++)
         textLine[i] = symbol;
 
-    auto r = Engine::get() //
+    auto r = ctx //
                  .make();
 
     for (int i = 0; i < Setup::ScreenHeight; i++)
@@ -1188,14 +1190,24 @@ static inline Engine::ActorBuilder Background(const char symbol = ' ')
 
     return r;
 }
+static inline Engine::ActorBuilder Background(const char symbol)
+{
+    return Background(RWE, symbol);
+}
 
-    /// Movable player character
-    static inline Engine::ActorBuilder PlayerChar(const char* c = "#")
-    {
-        return Engine::get() //
-            .make(Actor::Move | Actor::Control)
-            .text(c);
-    }
+/// Movable player character
+static inline Engine::ActorBuilder PlayerChar(Engine &ctx = RWE, const char *c = "#")
+{
+    return ctx //
+        .make(Actor::Move | Actor::Control)
+        .text(c);
+}
+
+// alias
+static inline Engine::ActorBuilder PlayerChar(const char *c)
+{
+    return PlayerChar(RWE, c);
+}
 
 } // namespace A
 
